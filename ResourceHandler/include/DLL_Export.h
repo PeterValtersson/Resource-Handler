@@ -1,8 +1,8 @@
-#ifndef _DLL_EXPORT_H_
-#define _DLL_EXPORT_H_
+#ifndef _DLL_EXPORT_RH_H_
+#define _DLL_EXPORT_RH_H_
 #ifdef _RH_EXPORT_
-#define DECLSPEC __declspec(dllexport)
+#define DECLSPEC_RH __declspec(dllexport)
 #else
-#define DECLSPEC __declspec(dllimport)
+#define DECLSPEC_RH __declspec(dllimport)
 #endif
 #endif

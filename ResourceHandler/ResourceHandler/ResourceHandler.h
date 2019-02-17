@@ -6,11 +6,8 @@ namespace Resources
 {
 	class ResourceHandler : public IResourceHandler {
 	public:
-		ResourceHandler(std::shared_ptr<MP::IMessageHub> messageHub);
+		ResourceHandler();
 		~ResourceHandler();
-	private:
-		void _registerResource(MP::Message& message);
-		void _loadResource(MP::Message& message);
 	};
 }
 #endif

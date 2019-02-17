@@ -1,24 +1,28 @@
 #ifndef _INTERFACE_RESOURCE_HANDLER_H_
 #define _INTERFACE_RESOURCE_HANDLER_H_
 #include <memory>
-#include <Client.h>
 #include "DLL_Export.h"
 
 namespace Resources
 {
-	class IResourceHandler : public MP::Client {
+	
+	class Resource_Base;
+
+	class IResourceHandler {
+		friend class Resource_Base;
 	public:
-		virtual ~IResourceHandler() {}
-		virtual const Utilities::GUID Identifier()const noexcept final
-		{
-			return "ResourceHandler"_hash;
-		}
+		virtual ~IResourceHandler( ) { }
+
+		DECLSPEC_RH static std::shared_ptr<IResourceHandler> get( );
 	protected:
-		IResourceHandler(std::shared_ptr<MP::IMessageHub> messageHub, std::chrono::milliseconds timePerFrame)
-			: MP::Client(messageHub, timePerFrame) {}
+		IResourceHandler( ) { }
+
+	private:
+		virtual void			registerResource( const Resource_Base* resource )noexcept = 0;
+		virtual void			refCountInc( const Resource_Base* resource )noexcept = 0;
+		virtual void			refCountDec( const Resource_Base* resource )noexcept = 0;
+		virtual uint32_t		getRefCount( const Resource_Base* resource )const noexcept = 0;
+		virtual Memory_Block	getResourceData( const Resource_Base* resource ) = 0;
 	};
-
-	DECLSPEC std::unique_ptr<IResourceHandler> createResourceHandler(std::shared_ptr<MP::IMessageHub> messageHub);
-
 }
 #endif

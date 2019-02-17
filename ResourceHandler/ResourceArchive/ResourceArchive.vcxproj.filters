@@ -15,24 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\IResourceHandler.h">
+    <ClInclude Include="BinaryResourceArchive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\DLL_Export.h">
+    <ClInclude Include="..\include\IResourceArchive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="IResourceHandler.cpp">
+    <ClCompile Include="IResourceArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceHandler.cpp">
+    <ClCompile Include="BinaryResourceArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
