@@ -2,17 +2,29 @@
 #define _RESOURCE_ARCHIVE_H_
 #include <GUID.h>
 #include <string_view>
+#include <ErrorHandling.h>
 
 namespace ResourceArchive
 {
+	struct ArchivePathNotFound : public Utilities::Exception {
+		ArchivePathNotFound( const std::string& path ) : Utilities::Exception( "Archive path could not be found. Path: " + path ) { }
+	};
 
+	struct ArchiveResourceNotFound : public Utilities::Exception {
+		ArchiveResourceNotFound( Utilities::GUID ID ) : Utilities::Exception( "Could not find archive resource. ID: " + std::to_string( ID ) ) { }
+	};
+
+	enum class ArchiveMode {
+		development,
+		runtime
+	};
 	struct Memory_Block {
 		void* data = nullptr;
 		size_t size = 0;
 	};
 	struct ArchiveInfo {
 		Utilities::GUID ID;
-		std::string name;
+		std::string_view name;
 		Memory_Block memory;
 	};
 	class IResourceArchive {
@@ -27,11 +39,11 @@ namespace ResourceArchive
 
 		// Will get the name of the resource specified
 		//
-		virtual std::string			name( Utilities::GUID ID )const = 0;
+		virtual std::string_view	name( Utilities::GUID ID )const = 0;
 
 		// Read in the data for the resource
 		//
-		// Vill allocate memory using the allocator specified at creation.
+		// Will allocate memory using the allocator specified at creation.
 		virtual ArchiveInfo			read( Utilities::GUID ID ) = 0;
 
 		// Write to the resource
