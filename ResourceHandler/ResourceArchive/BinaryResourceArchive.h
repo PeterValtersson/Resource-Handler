@@ -3,6 +3,7 @@
 #include <IResourceArchive.h>
 #include <fstream>
 #include <Sofa.h>
+#include <map>
 
 namespace ResourceArchive
 {
@@ -14,33 +15,53 @@ namespace ResourceArchive
 		virtual bool				exists( Utilities::GUID ID )const noexcept;
 		virtual size_t				size( Utilities::GUID ID )const;
 		virtual std::string_view	name( Utilities::GUID ID )const;
-		virtual ArchiveInfo			read( Utilities::GUID ID );
+		virtual const ArchiveInfo&	read( Utilities::GUID ID );
 		virtual void				write( Utilities::GUID ID, Memory_Block& memory );
 
 	private:
-		
-	private:
-		std::fstream _archiveStream;
-		ArchiveMode _mode;
 
-		
 
 		struct Archive  {
-			struct Header : public Utilities::Sofa::Array::Sofa<Utilities::GUID, Utilities::GUID::Hasher,
-				char[512],	 // Name
+			struct Header {
+				uint32_t version = 000001;
+				uint64_t tailStart;
+				uint64_t tailSize;
+			} header;
+
+			struct Entries : public Utilities::Sofa::Array::Sofa<Utilities::GUID, Utilities::GUID::Hasher,
+				char[128],	 // Name
 				std::size_t, // Data start
 				std::size_t	 // Data size
 			> {
 				static const uint8_t ID = 0;
-				static const uint8_t name = 1;
-				static const uint8_t dataStart = 2;
-				static const uint8_t dataSize = 3;
-			} header;
-			ArchiveInfo	loadArchiveResource( std::size_t index );
+				static const uint8_t Name = 1;
+				static const uint8_t DataStart = 2;
+				static const uint8_t DataSize = 3;
+			} entries;
+
+			
+			const ArchiveInfo&	loadEntry( Utilities::GUID ID , size_t index);
+
+			
+		
+
+			Archive( const std::string& archivePath, ArchiveMode mode );
+			~Archive();
 
 		private:
-			
+			void readHeader();
+			void readTail();
+
+			void writeHeader();
+		
+
+			std::map<Utilities::GUID, ArchiveInfo, Utilities::GUID::Compare> loadedEntries;
+			std::fstream stream;
 		} _archive;
+
+
+		static const uint32_t lastestVersion = 000001;
+		ArchiveMode mode;
 	};
 }
 #endif

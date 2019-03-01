@@ -181,11 +181,8 @@
     <ClCompile Include="Tests.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Message-Passer\MessagePasser\MessagePasser\MessagePasser.vcxproj">
-      <Project>{aa2943cf-e330-4d68-9b8c-2bfc185b37ed}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\ResourceHandler\ResourceHandler.vcxproj">
-      <Project>{bed7b51d-7499-4f9e-a74f-3d66d316dbab}</Project>
+    <ProjectReference Include="..\ResourceArchive\ResourceArchive.vcxproj">
+      <Project>{eb665cd1-efa4-419b-b6af-882e5bcdb66e}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

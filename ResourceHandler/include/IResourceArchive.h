@@ -3,6 +3,9 @@
 #include <GUID.h>
 #include <string_view>
 #include <ErrorHandling.h>
+#include <stdint.h>
+#include <memory>
+#include <DLL_Export.h>
 
 namespace ResourceArchive
 {
@@ -12,6 +15,18 @@ namespace ResourceArchive
 
 	struct ArchiveResourceNotFound : public Utilities::Exception {
 		ArchiveResourceNotFound( Utilities::GUID ID ) : Utilities::Exception( "Could not find archive resource. ID: " + std::to_string( ID ) ) { }
+	};
+
+	struct ArchiveNotInDeveloperMode : public Utilities::Exception {
+		ArchiveNotInDeveloperMode( Utilities::GUID ID ) : Utilities::Exception( "Tried to write to archive while not in developer mode.\n GUID: " + std::to_string( ID ) ) { }
+	};
+
+	struct ArchivePathNotAccessible : public Utilities::Exception {
+		ArchivePathNotAccessible( const std::string& path ) : Utilities::Exception( "Could not access archive resource. ID: " + path ) { }
+	};
+
+	struct ArchiveCorrupt : public Utilities::Exception {
+		ArchiveCorrupt( const std::string& path, uint32_t corruptionType ) : Utilities::Exception( "Archive is corrupted. \nError: " + std::to_string( corruptionType ) ) { }
 	};
 
 	enum class ArchiveMode {
@@ -24,7 +39,7 @@ namespace ResourceArchive
 	};
 	struct ArchiveInfo {
 		Utilities::GUID ID;
-		std::string_view name;
+		std::string name;
 		Memory_Block memory;
 	};
 	class IResourceArchive {
@@ -44,14 +59,15 @@ namespace ResourceArchive
 		// Read in the data for the resource
 		//
 		// Will allocate memory using the allocator specified at creation.
-		virtual ArchiveInfo			read( Utilities::GUID ID ) = 0;
+		virtual const ArchiveInfo&	read( Utilities::GUID ID ) = 0;
 
 		// Write to the resource
 		//
 		virtual void				write( Utilities::GUID ID, Memory_Block& memory ) = 0;
-
 	protected:
 		IResourceArchive();
 	};
+
+	DECLSPEC_RA std::unique_ptr<IResourceArchive> createResourceArchive( const std::string& path, ArchiveMode mode );
 }
 #endif
