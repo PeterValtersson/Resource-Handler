@@ -3,69 +3,64 @@
 
 #include <GUID.h>
 #include <IResourceHandler.h>
+#include <functional>
+
 
 namespace Resources
 {
 	
 	class Resource_Base {
 	public:
-		Resource_Base( Utilities::GUID ID )noexcept : ID( ID ), checkedIn( false ), memory( {nullptr} )
+		Resource_Base( Utilities::GUID ID )noexcept : ID( ID ), checkedIn( false ) 
 		{
-			IResourceHandler::get()->registerResource( this );
+			IResourceHandler::get()->registerResource( ID );
 		}
 		Resource_Base( const Resource_Base& other ) = delete;
 		Resource_Base( Resource_Base&& other ) = delete;
 		Resource_Base& operator=( const Resource_Base& other ) = delete;
 		Resource_Base& operator=( Resource_Base&& other ) = delete;
 
-		~Resource_Base()noexcept { }
+		~Resource_Base()noexcept
+		{ 
+			checkOut();
+		}
 
 		bool operator==( const Resource_Base& other )const noexcept
 		{
 			return ID == other.ID;
 		}
 
-		void checkIn() noexcept
+		void checkIn() 
 		{
 			if ( !checkedIn )
-				IResourceHandler::get()->refCountInc( this );
+				IResourceHandler::get()->checkIn( ID );
 			checkedIn = true;
 		}
 
-		void checkOut() noexcept
+		void checkOut() 
 		{
 			if ( checkedIn )
 			{
-				IResourceHandler::get()->refCountDec( this );
-				memory.data = nullptr;
+				IResourceHandler::get()->checkOut( ID );
 				checkedIn = false;
 			}
 		}
 
-		uint32_t totalRefCount()const noexcept
+		uint32_t totalRefCount()const
 		{
-			return IResourceHandler::get()->getRefCount( this );		
+			return IResourceHandler::get()->getRefCount( ID );
 		}
 
 	protected:
 		Utilities::GUID ID;
 		bool checkedIn;
-		Memory_Block memory;
-
+		ResourceArchive::ArchiveEntry data;
 		void loadData()
 		{
 			checkIn();
-			if ( !memory.data )
+			if ( !data.isValid() )
 			{
-				try
-				{
-					memory = IResourceHandler::get()->getResourceData( this );
-				}
-				catch ( ... )
-				{
-					checkOut();
-					throw;
-				}
+				data = IResourceHandler::get()->getResourceData( ID );
 			}
 		}
 	};
@@ -83,6 +78,11 @@ namespace Resources
 		{
 			loadData();
 			return *(T*)memory.data;
+		}
+		inline void edit( const std::function<void( T& )>& callback )
+		{
+			loadData();
+			callback( *(T*)memory.data );
 		}
 		inline operator const T&() { return get(); }
 		inline const T& operator*() { return get(); }

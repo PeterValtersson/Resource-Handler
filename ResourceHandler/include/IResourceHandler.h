@@ -2,12 +2,10 @@
 #define _INTERFACE_RESOURCE_HANDLER_H_
 #include <memory>
 #include "DLL_Export.h"
+#include <IResourceArchive.h>
 
 namespace Resources
 {
-	
-	class Resource_Base;
-
 	class IResourceHandler {
 		friend class Resource_Base;
 	public:
@@ -18,11 +16,11 @@ namespace Resources
 		IResourceHandler( ) { }
 
 	private:
-		virtual void			registerResource( const Resource_Base* resource )noexcept = 0;
-		virtual void			refCountInc( const Resource_Base* resource )noexcept = 0;
-		virtual void			refCountDec( const Resource_Base* resource )noexcept = 0;
-		virtual uint32_t		getRefCount( const Resource_Base* resource )const noexcept = 0;
-		virtual Memory_Block	getResourceData( const Resource_Base* resource ) = 0;
+		virtual void			registerResource( Utilities::GUID ID ) = 0;
+		virtual void			checkIn( Utilities::GUID ID )= 0;
+		virtual void			checkOut( Utilities::GUID ID ) = 0;
+		virtual uint32_t		getRefCount( Utilities::GUID ID )const  = 0;
+		virtual ResourceArchive::ArchiveEntry	getResourceData( Utilities::GUID ID ) = 0;
 	};
 }
 #endif
