@@ -147,11 +147,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\IResourceArchive.h" />
-    <ClInclude Include="BinaryResourceArchive.h" />
+    <ClInclude Include="BinaryArchive.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BinaryResourceArchive.cpp" />
+    <ClCompile Include="BinaryArchive.cpp" />
     <ClCompile Include="IResourceArchive.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Utilities\Utilities\Profiler\Profiler.vcxproj">
+      <Project>{bae4cf46-4926-4052-a0b5-290947489c07}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

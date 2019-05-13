@@ -4,11 +4,11 @@
 #include <ErrorHandling.h>
 #include <stdint.h>
 #include <DLL_Export.h>
-#include <MemoryBlock.h>
+#include <ChunkyAllocator.h>
 #include <memory>
 #include <functional>
 
-namespace ResourceArchive
+namespace Resources
 {
 	struct ArchivePathNotFound : public Utilities::Exception {
 		ArchivePathNotFound( const std::string& path ) : Utilities::Exception( "Archive path could not be found. Path: " + path ) { }
@@ -30,83 +30,53 @@ namespace ResourceArchive
 	struct ArchiveCorrupt : public Utilities::Exception {
 		ArchiveCorrupt( const std::string& path, uint32_t corruptionType ) : Utilities::Exception( "Archive is corrupted. \nError: " + std::to_string( corruptionType ) ) { }
 	};
-
-	enum class ArchiveMode {
-		development,
-		runtime
+	enum class AccessMode {
+		read_only,
+		read_write
 	};
-
 	class IResourceArchive {
 	public:
-		virtual ~IResourceArchive();
+		virtual ~IResourceArchive() { };
+
+		// Checks whether or not the given file exists
+		//
+		virtual bool				exists( const Utilities::GUID ID )const noexcept = 0;
+
+		// Looks up the size of the resource with the given ID.
+		//
+		//  \exception ArchiveResourceNotFound
+		virtual size_t				get_size( const Utilities::GUID ID )const = 0;
+
+		// Will get the name of the resource specified
+		//
+		//  \exception ArchiveResourceNotFound
+		virtual std::string			get_name( const Utilities::GUID ID )const = 0;
+
 
 		// Save all changes to the resource archive file
 		//
 		// \warning On shutdown, any unsaved data will be lost
 		//  \exception ArchiveNotInDeveloperMode
-		virtual void				save() = 0;
-
-		// Checks whether or not the given file exists
-		//
-		virtual bool				exists( Utilities::GUID ID )const noexcept = 0;
-
-		// Looks up the size of the resource with the given ID.
-		//
-		//  \exception ArchiveResourceNotFound
-		virtual size_t				getSize( Utilities::GUID ID )const = 0;
-
-		// Will get the name of the resource specified
-		//
-		//  \exception ArchiveResourceNotFound
-		virtual std::string			getName( Utilities::GUID ID )const = 0;
+		virtual void				save( const std::vector<std::pair<Utilities::GUID, Utilities::Allocators::MemoryBlock>>& data_to_save ) = 0;
 
 		// Write a Memory_Block to a resource
 		//
 		// Memory is only written to RAM. To write to file, see save.
 		//  \exception ArchiveNotInDeveloperMode
-		virtual void				write( Utilities::GUID ID, const void* data, size_t size ) = 0;
-		virtual void				setName( Utilities::GUID ID, const std::string& name ) = 0;
-
+		//virtual void				write( const Utilities::GUID ID, const Utilities::Allocators::MemoryBlock data ) = 0;
+		virtual void				set_name( const Utilities::GUID ID, const std::string& name ) = 0;
+		virtual void				set_type( const Utilities::GUID ID, const Utilities::GUID type ) = 0;
 		// Read in the data for the resource
 		//
 		// Will allocate memory using the allocator specified at creation.
 		//  \exception ArchiveResourceNotFound
-		virtual void				read( Utilities::GUID ID, const std::function<void( Utilities::Allocators::MemoryBlock )>& callback ) = 0;
-		
-		// Read in the data for the resource
-		//
-		// Will allocate memory using the allocator specified at creation.
-		// Is only available in runtime.
-		//  \exception ArchiveResourceNotFound
-		/*virtual Utilities::Allocators::MemoryBlock	readAndKeep( Utilities::GUID ID, const std::function<void( Utilities::Allocators::MemoryBlock )>& callback ) = 0;
-		virtual void				returnKeptRead( Utilities::GUID ID ) = 0;*/
-		/*
-
-
-		// Read in the data for the resource
-		//
-		// Will allocate memory using the allocator specified at creation.
-		//  \exception ArchiveResourceNotFound
-		virtual ArchiveEntry		read( Utilities::GUID ID ) = 0;
-
-
-
-
-
-
-
-		// Write a Memory_Block and change name
-		//
-		// Memory is only written to RAM. To write to file, see save.
-		//  \exception ArchiveNotInDeveloperMode
-		virtual void				write( Utilities::GUID ID, std::string_view name, Memory_Block memory ) = 0;*/
-
+		virtual const Utilities::Allocators::Handle read( const Utilities::GUID ID, Utilities::Allocators::ChunkyAllocator& allocator ) = 0;
 
 	protected:
-		IResourceArchive();
+		IResourceArchive() { };
 
 	};
 
-	DECLSPEC_RA std::unique_ptr<IResourceArchive> createResourceArchive( const std::string& path, ArchiveMode mode );
+	DECLSPEC_RA std::unique_ptr<IResourceArchive> createResourceArchive( const std::string& path, AccessMode mode );
 }
 #endif

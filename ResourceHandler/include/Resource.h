@@ -2,7 +2,6 @@
 #define _RESOURCES_RESOURCE_H_
 
 #include <GUID.h>
-#include <IResourceHandler.h>
 #include <functional>
 
 
@@ -11,16 +10,13 @@ namespace Resources
 	
 	class Resource_Base {
 	public:
-		Resource_Base( Utilities::GUID ID )noexcept : ID( ID ), checkedIn( false ) 
-		{
-			IResourceHandler::get()->registerResource( ID );
-		}
+		Resource_Base( Utilities::GUID ID );
 		Resource_Base( const Resource_Base& other ) = delete;
 		Resource_Base( Resource_Base&& other ) = delete;
 		Resource_Base& operator=( const Resource_Base& other ) = delete;
 		Resource_Base& operator=( Resource_Base&& other ) = delete;
 
-		~Resource_Base()noexcept
+		~Resource_Base()
 		{ 
 			checkOut();
 		}
@@ -40,15 +36,19 @@ namespace Resources
 		void checkOut() 
 		{
 			if ( checkedIn )
-			{
 				IResourceHandler::get()->checkOut( ID );
-				checkedIn = false;
-			}
+			checkedIn = false;
 		}
 
 		uint32_t totalRefCount()const
 		{
 			return IResourceHandler::get()->getRefCount( ID );
+		}
+
+		Utilities::Allocators::ChunkyAllocator::ChunkyData data()
+		{
+			checkIn();
+			return IResourceHandler::get()->getResourceData( ID );
 		}
 
 	protected:

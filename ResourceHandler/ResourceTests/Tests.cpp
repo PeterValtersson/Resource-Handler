@@ -31,7 +31,7 @@ namespace ResourceTests
 			auto resourceArchive = ResourceArchive::createResourceArchive( "test.data", ResourceArchive::ArchiveMode::runtime );
 			Assert::ExpectException<ResourceArchive::ArchiveResourceNotFound>( [&]
 			{
-				resourceArchive->read( "This file should not exist", []( auto data ) { } ); return 0;
+				resourceArchive->read( "This file should not exist" );
 			} );
 			Assert::ExpectException<ResourceArchive::ArchiveResourceNotFound>( [&]
 			{
@@ -63,10 +63,9 @@ namespace ResourceTests
 				Assert::AreEqual( sizeof( testint ), resourceArchive->getSize( "TestFile" ), L"File wrong size" );
 				Assert::AreEqual( "TestFile", resourceArchive->getName( "TestFile" ).c_str(), L"File wrong name" );
 
-				resourceArchive->read( "TestFile", [&]( auto data )
-				{
-					Assert::AreEqual( testint, *(int*)data.data, L"Data not correct" );
-				} );
+				auto data = resourceArchive->read( "TestFile" );
+				Assert::AreEqual( testint, *(int*)data.data().data, L"Data not correct" );
+		
 
 				resourceArchive->save();
 			}
@@ -78,10 +77,9 @@ namespace ResourceTests
 				Assert::AreEqual( sizeof( testint ), resourceArchive->getSize( "TestFile" ), L"File wrong size" );
 				Assert::AreEqual( "TestFile", resourceArchive->getName( "TestFile" ).c_str(), L"File wrong name" );
 
-				resourceArchive->read( "TestFile", [&]( auto data )
-				{
-					Assert::AreEqual( testint, *(int*)data.data, L"Data not correct" );
-				} );
+				auto data = resourceArchive->read( "TestFile" );
+				Assert::AreEqual( testint, *(int*)data.data().data, L"Data not correct" );
+				
 
 				
 			}

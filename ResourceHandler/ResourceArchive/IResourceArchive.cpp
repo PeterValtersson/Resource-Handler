@@ -1,14 +1,7 @@
 #include <IResourceArchive.h>
-#include "BinaryResourceArchive.h"
+#include "BinaryArchive.h"
 
-std::unique_ptr<ResourceArchive::IResourceArchive> ResourceArchive::createResourceArchive( const std::string& path, ArchiveMode mode)
+std::unique_ptr<Resources::IResourceArchive> Resources::createResourceArchive( const std::string& path, Resources::AccessMode mode)
 {
-	return std::make_unique<BinaryResourceArchive>( path, mode );
+	return std::make_unique<Resources::BinaryArchive>( path, mode );
 }
-
-ResourceArchive::IResourceArchive::IResourceArchive()
-{ }
-
-
-ResourceArchive::IResourceArchive::~IResourceArchive()
-{ }

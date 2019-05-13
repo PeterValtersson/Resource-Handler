@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BinaryResourceArchive.h">
+    <ClInclude Include="..\include\IResourceArchive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\IResourceArchive.h">
+    <ClInclude Include="BinaryArchive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -26,7 +26,7 @@
     <ClCompile Include="IResourceArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BinaryResourceArchive.cpp">
+    <ClCompile Include="BinaryArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
