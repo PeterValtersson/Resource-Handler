@@ -12,7 +12,7 @@ namespace Resources {
 		BinaryArchive( const std::string& archivePath, AccessMode mode );
 		~BinaryArchive();
 
-		virtual void				save( const std::vector<std::pair<Utilities::GUID, Utilities::Allocators::MemoryBlock>>& data_to_save )override;
+		virtual void				save( const std::vector<std::pair<Utilities::GUID, const Utilities::Allocators::MemoryBlock>>& data_to_save )override;
 		virtual bool				exists( const Utilities::GUID ID )const noexcept override;
 		virtual size_t				get_size( const Utilities::GUID ID )const override;
 		virtual std::string			get_name( const Utilities::GUID ID )const override;

@@ -12,8 +12,9 @@ std::shared_ptr<Resources::IResourceHandler> Resources::IResourceHandler::get()
 	return resourceHandler;
 }
 
-DECLSPEC_RH std::shared_ptr<Resources::IResourceHandler> Resources::IResourceHandler::create()
+DECLSPEC_RH std::shared_ptr<Resources::IResourceHandler> Resources::IResourceHandler::create( AccessMode mode, std::vector<std::unique_ptr<IResourceArchive>>& archives )
 {
-	resourceHandler = std::make_shared<ResourceHandler>();
-	return  resourceHandler;
+	if ( mode == AccessMode::read_only )
+		resourceHandler = std::make_shared<ResourceHandler>( archives );
+	return resourceHandler;
 }

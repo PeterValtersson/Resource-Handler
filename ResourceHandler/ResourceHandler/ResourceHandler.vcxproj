@@ -155,8 +155,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IResourceHandler.cpp" />
-    <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceHandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Utilities\Utilities\Profiler\Profiler.vcxproj">
+      <Project>{bae4cf46-4926-4052-a0b5-290947489c07}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ResourceArchive\ResourceArchive.vcxproj">
+      <Project>{eb665cd1-efa4-419b-b6af-882e5bcdb66e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

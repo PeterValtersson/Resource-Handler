@@ -57,24 +57,24 @@ Resources::BinaryArchive::~BinaryArchive()
 	stream.close();
 }
 
-void Resources::BinaryArchive::save( const std::vector<std::pair<Utilities::GUID, Utilities::Allocators::MemoryBlock>>& data_to_save )
+void Resources::BinaryArchive::save( const std::vector<std::pair<Utilities::GUID, const Utilities::Allocators::MemoryBlock>>& data_to_save )
 { 
 	for ( auto& to_save : data_to_save )
 	{
 		if ( auto entry = entries.find( to_save.first ); entry.has_value() )
 		{
-			if ( to_save.second.size <= entries.peek<Entries::DataSize>( *entry ) )
+			if ( to_save.second.used_size <= entries.peek<Entries::DataSize>( *entry ) )
 			{
 				stream.seekp( entries.peek<Entries::DataStart>( *entry ) );
-				stream.write( (char*)to_save.second.data, to_save.second.size );
-				entries.set<Entries::DataSize>( *entry, to_save.second.size );
+				stream.write( (char*)to_save.second.data, to_save.second.used_size );
+				entries.set<Entries::DataSize>( *entry, to_save.second.used_size );
 			}
 			else
 			{
 				stream.seekp( header.tailStart );
-				stream.write( (char*)to_save.second.data, to_save.second.size );
+				stream.write( (char*)to_save.second.data, to_save.second.used_size );
 				entries.set<Entries::DataStart>( *entry, header.tailStart );
-				entries.set<Entries::DataSize>( *entry, to_save.second.size );
+				entries.set<Entries::DataSize>( *entry, to_save.second.used_size );
 				header.tailStart = stream.tellp();
 			}
 		}

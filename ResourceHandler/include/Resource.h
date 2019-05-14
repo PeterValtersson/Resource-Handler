@@ -3,68 +3,61 @@
 
 #include <GUID.h>
 #include <functional>
-
+#include <IResourceHandler.h>
 
 namespace Resources
 {
-	
-	class Resource_Base {
+	class Resource {
 	public:
-		Resource_Base( Utilities::GUID ID );
-		Resource_Base( const Resource_Base& other ) = delete;
-		Resource_Base( Resource_Base&& other ) = delete;
-		Resource_Base& operator=( const Resource_Base& other ) = delete;
-		Resource_Base& operator=( Resource_Base&& other ) = delete;
+		Resource( Utilities::GUID ID ) : ID(ID)
+		{
+			IResourceHandler::get()->register_resource( ID );
+		}
+		Resource( const Resource& other ) = delete;
+		Resource( Resource&& other ) = delete;
+		Resource& operator=( const Resource& other ) = delete;
+		Resource& operator=( Resource&& other ) = delete;
 
-		~Resource_Base()
+		~Resource()
 		{ 
-			checkOut();
+			check_out();
 		}
 
-		bool operator==( const Resource_Base& other )const noexcept
+		bool operator==( const Resource& other )const noexcept
 		{
 			return ID == other.ID;
 		}
 
-		void checkIn() 
+		void check_in() 
 		{
 			if ( !checkedIn )
-				IResourceHandler::get()->checkIn( ID );
+				IResourceHandler::get()->inc_refCount( ID );
 			checkedIn = true;
 		}
 
-		void checkOut() 
+		void check_out() 
 		{
 			if ( checkedIn )
-				IResourceHandler::get()->checkOut( ID );
+				IResourceHandler::get()->dec_refCount( ID );
 			checkedIn = false;
 		}
 
-		uint32_t totalRefCount()const
+		uint32_t total_refCount()const
 		{
-			return IResourceHandler::get()->getRefCount( ID );
+			return IResourceHandler::get()->get_refCount( ID );
 		}
 
-		Utilities::Allocators::ChunkyAllocator::ChunkyData data()
+		void use_data(const std::function<void(const Utilities::Allocators::MemoryBlock data)>& callback)
 		{
-			checkIn();
-			return IResourceHandler::get()->getResourceData( ID );
+			check_in();
+			IResourceHandler::get()->use_data( ID, callback );
 		}
 
 	protected:
 		Utilities::GUID ID;
 		bool checkedIn;
-		ResourceArchive::ArchiveEntry data;
-		void loadData()
-		{
-			checkIn();
-			if ( !data.isValid() )
-			{
-				data = IResourceHandler::get()->getResourceData( ID );
-			}
-		}
 	};
-
+	/*
 	template<class T>
 	class Resource : public Resource_Base {
 	public:
@@ -86,7 +79,7 @@ namespace Resources
 		}
 		inline operator const T&() { return get(); }
 		inline const T& operator*() { return get(); }
-	};
+	};*/
 }
 
 #endif

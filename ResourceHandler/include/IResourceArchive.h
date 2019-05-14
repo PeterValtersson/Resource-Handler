@@ -18,11 +18,6 @@ namespace Resources
 		ArchiveResourceNotFound( Utilities::GUID ID ) : Utilities::Exception( "Could not find archive resource. GUID: " + std::to_string( ID ) ) { }
 	};
 
-	struct ArchiveNotInDeveloperMode : public Utilities::Exception {
-		ArchiveNotInDeveloperMode( Utilities::GUID ID ) : Utilities::Exception( "Tried to write to archive while not in developer mode.\n GUID: " + std::to_string( ID ) ) { }
-		ArchiveNotInDeveloperMode() : Utilities::Exception( "Tried to write to archive while not in developer mode." ) { }
-	};
-
 	struct ArchivePathNotAccessible : public Utilities::Exception {
 		ArchivePathNotAccessible( const std::string& path ) : Utilities::Exception( "Could not access archive resource. GUID: " + path ) { }
 	};
@@ -57,7 +52,7 @@ namespace Resources
 		//
 		// \warning On shutdown, any unsaved data will be lost
 		//  \exception ArchiveNotInDeveloperMode
-		virtual void				save( const std::vector<std::pair<Utilities::GUID, Utilities::Allocators::MemoryBlock>>& data_to_save ) = 0;
+		virtual void				save( const std::vector<std::pair<Utilities::GUID, const Utilities::Allocators::MemoryBlock>>& data_to_save ) = 0;
 
 		// Write a Memory_Block to a resource
 		//
