@@ -2,49 +2,53 @@
 #define _BINARY_RESOURCE_ARCHIVE_H_
 #include <IResourceArchive.h>
 #include <fstream>
-#include <Sofa.h>
+#include <Utilities/Memory/Sofa.h>
 #include <map>
-#include <ChunkyAllocator.h>
+#include <Utilities/Memory/ChunkyAllocator.h>
 
-namespace Resources {
-	class BinaryArchive : public IResourceArchive {
+namespace Resources
+{
+	class BinaryArchive : public IResourceArchive{
 	public:
-		BinaryArchive( const std::string& archivePath, AccessMode mode );
+		BinaryArchive( std::string_view archivePath, AccessMode mode );
 		~BinaryArchive();
 
-		virtual void				save( const std::vector<std::pair<Utilities::GUID, const Utilities::Allocators::MemoryBlock>>& data_to_save )override;
-		virtual bool				exists( const Utilities::GUID ID )const noexcept override;
-		virtual size_t				get_size( const Utilities::GUID ID )const override;
-		virtual std::string			get_name( const Utilities::GUID ID )const override;
-		//virtual void				write( const Utilities::GUID ID, const Utilities::Allocators::MemoryBlock data )override;
-		virtual void				set_name( const Utilities::GUID ID, const std::string& name )override;
-		virtual void				set_type( const Utilities::GUID ID, const Utilities::GUID type )override;
+		const size_t			num_resources()const noexcept final;
+		void					create( const Utilities::GUID ID )final;
+		void					save_resource_info()final;
+		void					save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )final;
+		void					save_resource_info_data( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )final;
+		const bool				exists( const Utilities::GUID ID )const noexcept final;
+		const size_t			get_size( const Utilities::GUID ID )const final;
+		const std::string		get_name( const Utilities::GUID ID )const final;
+		const Utilities::GUID	get_type( const Utilities::GUID ID )const final;
+		void					set_name( const Utilities::GUID ID, std::string_view name )final;
+		void					set_type( const Utilities::GUID ID, const Utilities::GUID type )final;
 
-		virtual const Utilities::Allocators::Handle		read( const Utilities::GUID ID, Utilities::Allocators::ChunkyAllocator& allocator )override;
+		const Utilities::Memory::Handle		read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator )final;
 
-		//virtual void				write( Utilities::GUID ID, std::string_view name, Memory_Block memory )override;
 	private:
-		struct Header {
+		struct Header{
 			uint32_t version = 000001;
 			uint64_t tailStart;
 			uint64_t unusedSpace;
 		} header;
 
-		struct Entries : public Utilities::Sofa::Array::Sofa<Utilities::GUID, Utilities::GUID::Hasher,
+		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,
 			char[128],	 // Name
 			Utilities::GUID, // Type
 			uint64_t, // Data start
 			uint64_t	 // Data size
-		> {
-			static const uint8_t ID = 0;
-			static const uint8_t Name = 1;
-			static const uint8_t Type = 2;
-			static const uint8_t DataStart = 3;
-			static const uint8_t DataSize = 4;
+		>{
+			static constexpr uint8_t ID = 0;
+			static constexpr uint8_t Name = 1;
+			static constexpr uint8_t Type = 2;
+			static constexpr uint8_t DataStart = 3;
+			static constexpr uint8_t DataSize = 4;
 		} entries;
 
 	private:
-
+		void save_resource_info_data( const std::pair<size_t, Utilities::Memory::Handle>& index_handle, Utilities::Memory::ChunkyAllocator& allocator, bool write_info );
 
 		void readHeader();
 		void readTail();

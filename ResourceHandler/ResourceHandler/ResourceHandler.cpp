@@ -1,5 +1,5 @@
 #include "ResourceHandler.h"
-#include <Profiler.h>
+#include <Utilities/Profiler/Profiler.h>
 
 template<typename T>
 bool is_ready( const std::future<T>& f )
@@ -17,7 +17,7 @@ bool is_ready( const std::future<T>& f )
 
 
 Resources::ResourceHandler::ResourceHandler( std::vector<std::unique_ptr<IResourceArchive>>& archives )
-	: archives( std::move( archives ) ), allocator( uint32_t( 1_gb / Utilities::Allocators::ChunkyAllocator::blocksize() ) )
+	: archives( std::move( archives ) ), allocator( uint32_t( 1_gb / Utilities::Memory::ChunkyAllocator::blocksize() ) )
 {
 	running = true;
 	pass0.thread = std::thread( &Pass0::entry, &pass0, &running, this );
@@ -31,7 +31,7 @@ Resources::ResourceHandler::~ResourceHandler()
 
 void Resources::ResourceHandler::update()noexcept
 {
-	Profile;
+	PROFILE;
 
 	auto refCounts = resources.get<Entries::RefCount>();
 	auto states = resources.get<Entries::State>();
@@ -43,7 +43,7 @@ void Resources::ResourceHandler::update()noexcept
 		{
 			if ( !pass0.loading( ids[i] ) )
 			{
-				std::promise<Utilities::Allocators::Handle> p;
+				std::promise<Utilities::Memory::Handle> p;
 				pass0.futures.push_back( { ids[i], std::move( p.get_future() ) } );
 				pass0.to_load.push( { ids[i], std::move( p ) } );
 			}
@@ -71,13 +71,13 @@ void Resources::ResourceHandler::update()noexcept
 
 void Resources::ResourceHandler::register_resource( Utilities::GUID ID )noexcept
 {
-	Profile;
+	PROFILE;
 	resources.add( ID );
 }
 
 void Resources::ResourceHandler::inc_refCount( Utilities::GUID ID )
 {
-	Profile;
+	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
 		"Write to log";
 	else
@@ -86,7 +86,7 @@ void Resources::ResourceHandler::inc_refCount( Utilities::GUID ID )
 
 void Resources::ResourceHandler::dec_refCount( Utilities::GUID ID )
 {
-	Profile;
+	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
 		"Write to log";
 	else
@@ -95,7 +95,7 @@ void Resources::ResourceHandler::dec_refCount( Utilities::GUID ID )
 
 Resources::RefCount Resources::ResourceHandler::get_refCount( Utilities::GUID ID ) const
 {
-	Profile;
+	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
 		"Write to log";
 	else
@@ -103,9 +103,9 @@ Resources::RefCount Resources::ResourceHandler::get_refCount( Utilities::GUID ID
 	return 0;
 }
 
-void Resources::ResourceHandler::use_data( Utilities::GUID ID, const std::function<void( const Utilities::Allocators::MemoryBlock )>& callback )
+void Resources::ResourceHandler::use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback )
 {
-	Profile;
+	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
 		"Write to log";
 	else

@@ -5,11 +5,11 @@
 #include <IResourceArchive.h>
 
 namespace Resources {
-	struct NoResourceHandlerException : public Utilities::Exception {
-		NoResourceHandlerException() : Utilities::Exception( "No resource handler has been created." ) { }
+	struct NoResourceHandler : public Utilities::Exception {
+		NoResourceHandler() : Utilities::Exception( "No resource handler has been created." ) { }
 	};
-	struct ResourceHandlerReadOnlyException : public Utilities::Exception {
-		ResourceHandlerReadOnlyException() : Utilities::Exception( "Tried to write to resource archive while in read-only mode." ) { }
+	struct ResourceHandlerReadOnly : public Utilities::Exception {
+		ResourceHandlerReadOnly() : Utilities::Exception( "Tried to write to resource archive while in read-only mode." ) { }
 	};
 	using RefCount = uint32_t;
 	class IResourceHandler {
@@ -26,10 +26,10 @@ namespace Resources {
 		virtual void			inc_refCount( Utilities::GUID ID ) = 0;
 		virtual void			dec_refCount( Utilities::GUID ID ) = 0;
 		virtual RefCount		get_refCount( Utilities::GUID ID )const = 0;
-		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Allocators::MemoryBlock )>& callback ) = 0;
-		virtual void			write_data( Utilities::GUID ID, const Utilities::Allocators::MemoryBlock data ) { throw ResourceHandlerReadOnlyException(); }
-		virtual void			set_type( Utilities::GUID ID ) { throw ResourceHandlerReadOnlyException(); }
-		virtual void			set_name( Utilities::GUID ID, const std::string& name ) { throw ResourceHandlerReadOnlyException(); }
+		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback ) = 0;
+		virtual void			write_data( Utilities::GUID ID, const Utilities::Memory::MemoryBlock data ) { throw ResourceHandlerReadOnly(); }
+		virtual void			set_type( Utilities::GUID ID ) { throw ResourceHandlerReadOnly(); }
+		virtual void			set_name( Utilities::GUID ID, const std::string& name ) { throw ResourceHandlerReadOnly(); }
 		IResourceHandler() { }
 	};
 }

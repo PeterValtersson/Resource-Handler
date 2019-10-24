@@ -1,7 +1,7 @@
 #ifndef _RESOURCES_RESOURCE_H_
 #define _RESOURCES_RESOURCE_H_
 
-#include <GUID.h>
+#include <Utilities/GUID.h>
 #include <functional>
 #include <IResourceHandler.h>
 
@@ -47,7 +47,7 @@ namespace Resources
 			return IResourceHandler::get()->get_refCount( ID );
 		}
 
-		void use_data(const std::function<void(const Utilities::Allocators::MemoryBlock data)>& callback)
+		void use_data(const std::function<void(const Utilities::Memory::MemoryBlock data)>& callback)
 		{
 			check_in();
 			IResourceHandler::get()->use_data( ID, callback );

@@ -14,7 +14,7 @@ namespace ResourceTests
 		TEST_METHOD( ResourceTests_InitResourceHandler )
 		{
 			std::vector<std::unique_ptr<Resources::IResourceArchive>> archives;
-			archives.push_back( Resources::createResourceArchive( "test.dat", Resources::AccessMode::read_write ) );
+			archives.push_back( Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write ) );
 			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_write, archives );
 		}
 	

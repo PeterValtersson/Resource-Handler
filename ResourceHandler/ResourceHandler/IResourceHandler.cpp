@@ -8,7 +8,7 @@ std::shared_ptr<Resources::IResourceHandler> resourceHandler = nullptr;
 std::shared_ptr<Resources::IResourceHandler> Resources::IResourceHandler::get()
 {
 	if ( !resourceHandler )
-		throw NoResourceHandlerException(); //resourceHandler = std::make_shared<ResourceHandler>();
+		throw NoResourceHandler(); //resourceHandler = std::make_shared<ResourceHandler>();
 	return resourceHandler;
 }
 
