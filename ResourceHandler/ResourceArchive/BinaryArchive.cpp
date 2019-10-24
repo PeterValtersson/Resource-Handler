@@ -64,17 +64,51 @@ const size_t Resources::BinaryArchive::num_resources() const noexcept
 
 void Resources::BinaryArchive::create( const Utilities::GUID ID )
 {
+	PROFILE;
 	entries.add( ID, "", 0, 0, 0 );
 }
 
 void Resources::BinaryArchive::save_resource_info()
 {
+	PROFILE;
 	writeHeader();
 	writeTail();
 }
 
 void Resources::BinaryArchive::save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
 {
+	PROFILE;
+	try
+	{
+		_save_resource_info_data( to_save, allocator );
+	}
+	catch ( ... )
+	{
+		save_resource_info();
+	}
+	save_resource_info();
+}
+
+void Resources::BinaryArchive::save_resource_info_data( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
+{
+	PROFILE;
+	for ( const auto& to_save : to_save_vector )
+	{
+		try
+		{
+			_save_resource_info_data( to_save, allocator );
+		}
+		catch ( ... )
+		{
+			save_resource_info();
+		}
+	}
+	save_resource_info();
+}
+
+void Resources::BinaryArchive::_save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
+{
+	PROFILE;
 	if ( const auto entry = entries.find( to_save.first ); !entry.has_value() )
 		throw ResourceNotFound( to_save.first );
 	else
@@ -98,37 +132,6 @@ void Resources::BinaryArchive::save_resource_info_data( const To_Save& to_save, 
 
 		} );
 	}
-}
-
-void Resources::BinaryArchive::save_resource_info_data( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
-{
-	PROFILE;
-	for ( const auto& to_save : to_save_vector )
-		save_resource_info_data( to_save, allocator );
-	writeHeader();
-	writeTail();
-}
-
-void Resources::BinaryArchive::save_resource_info_data( const std::pair<size_t, Utilities::Memory::Handle>& index_handle, Utilities::Memory::ChunkyAllocator& allocator, bool write_info )
-{
-	allocator.use_data( index_handle.second, [&]( const Utilities::Memory::MemoryBlock mem )
-	{
-		if ( mem.used_size <= entries.peek<Entries::DataSize>( index_handle.first ) )
-		{
-			stream.seekp( entries.peek<Entries::DataStart>( index_handle.first ) );
-			mem.write_to_stream( stream );
-			entries.set<Entries::DataSize>( index_handle.first, mem.used_size );
-		}
-		else
-		{
-			stream.seekp( header.tailStart );
-			mem.write_to_stream( stream );
-			entries.set<Entries::DataStart>( index_handle.first, header.tailStart );
-			entries.set<Entries::DataSize>( index_handle.first, mem.used_size );
-			header.tailStart = stream.tellp();
-		}
-
-	} );
 }
 
 void Resources::BinaryArchive::readHeader()
@@ -197,6 +200,7 @@ const Utilities::GUID Resources::BinaryArchive::get_type( const Utilities::GUID 
 
 void Resources::BinaryArchive::set_name( const Utilities::GUID ID, std::string_view name )
 {
+	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )
 		throw ResourceNotFound( ID );
 	else
@@ -205,6 +209,7 @@ void Resources::BinaryArchive::set_name( const Utilities::GUID ID, std::string_v
 
 void Resources::BinaryArchive::set_type( const Utilities::GUID ID, const Utilities::GUID type )
 {
+	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )
 		throw ResourceNotFound( ID );
 	else
@@ -228,161 +233,3 @@ const Utilities::Memory::Handle Resources::BinaryArchive::read( const Utilities:
 		return handle;
 	}
 }
-//
-//void Resources::BinaryArchive::write( const Utilities::GUID ID, const Utilities::Allocators::MemoryBlock data )
-//{
-//	PROFILE;
-//
-//	if ( data.size == 0 || data.data == nullptr )
-//		throw UNKOWN_ERROR;
-//
-//	
-//		LoadedEntryInfo info;
-//		info.ID = ID;
-//		info.name = "";
-//		info.size = size;
-//		info.saved = false;
-//		info.memoryHandle = allocator.allocate( size );
-//		auto memory = allocator.getData( info.memoryHandle );
-//		memcpy( memory.data().data, data, info.size );
-//
-//		guidToEntryIndex[ID] = loadedEntries.size();
-//		loadedEntries.push_back( info );
-//	
-//	//if ( auto find = entries.find( ID ); find.has_value() )
-//	//	writeEntry( ID, memory, entries.get<Entries::Name>( *find ) );
-//	//else
-//	//	writeEntry( ID, memory, "" );
-//}
-//
-//void Resources::BinaryArchive::set_name( Utilities::GUID ID, const std::string & name )
-//{
-//	PROFILE;
-//
-//	// Already loaded
-//
-//		LoadedEntryInfo info;
-//		info.ID = ID;
-//		info.name = name;
-//		info.size = 0;
-//		info.saved = false;
-//
-//		guidToEntryIndex[ID] = loadedEntries.size();
-//		loadedEntries.push_back( info );
-//	
-//}
-
-//
-//void ResourceArchive::BinaryArchive::writeEntry( Utilities::GUID ID, Memory_Block memory, std::string_view name )
-//{
-//	entries.find( ID ).map( [&]( size_t index )
-//	{	// Entry already exists
-//		// If the file is not loaded
-//		if ( auto find = loadedEntries.find( ID ); find == loadedEntries.end() )
-//		{
-//			// Initiate the loaded entry data
-//			auto& info = loadedEntries[ID];
-//			info.ID = ID;
-//			info.name = name;
-//			info.memory.size = 0;
-//			info.memory.data = operator new(memory.size);
-//		}
-//
-//		auto& info = loadedEntries[ID];
-//
-//		// If new memory size is larger than old, entry is added at the end
-//		if ( memory.size > info.memory.size )
-//		{
-//			// Reallocate for more space
-//			operator delete(info.memory.data);
-//			info.memory.data = operator new(memory.size);
-//
-//			// If this is not the last entry in the file
-//			if ( entries.peek<Entries::DataStart>( index ) + info.memory.size < header.tailStart )
-//			{
-//				// Record the unused space and move the data start
-//				header.unusedSpace += info.memory.size;
-//				entries.get<Entries::DataStart>( index ) = header.tailStart;
-//				header.tailStart += memory.size;
-//			}
-//			else
-//			{
-//				// Move tail by the difference
-//				header.tailStart += memory.size - info.memory.size;
-//			}
-//
-//		}
-//		// New memory size is smaller than old, entry stays at the same location
-//		else if ( memory.size < info.memory.size )
-//		{
-//			// If this is not the last entry in the file
-//			if ( entries.peek<Entries::DataStart>( index ) + info.memory.size < header.tailStart )
-//			{
-//				// Record the unused space
-//				header.unusedSpace += info.memory.size - memory.size;
-//			}
-//			else
-//			{
-//				// Move tail by the difference
-//				header.tailStart -= info.memory.size - memory.size;
-//			}
-//		}
-//
-//		// Set the new size
-//		entries.get<Entries::DataSize>( index ) = info.memory.size;
-//		info.memory.size = memory.size;
-//
-//		// Copy over the new data
-//		memcpy( info.memory.data, memory.data, info.memory.size );
-//		info.saved = false;
-//
-//		return index;
-//	} )
-//
-//		.or_else( [&]
-//	{ // Entry does not exist
-//
-//	  // First add the entry
-//		auto index = entries.add( ID );
-//		memcpy( entries.get<Entries::Name>( index ), name.data(), name.size() );
-//		entries.get<Entries::Name>( index )[name.size()] = '\0';
-//		entries.get<Entries::DataStart>( index ) = header.tailStart;
-//		entries.get<Entries::DataSize>( index ) = memory.size;
-//
-//		header.tailStart += memory.size;
-//
-//		// Initate the loaded entry data
-//		auto& info = loadedEntries[ID];
-//		info.ID = ID;
-//		info.name = name;
-//		info.saved = false;
-//		info.memory.size = memory.size;
-//		info.memory.data = operator new(memory.size);
-//		memcpy( info.memory.data, memory.data, info.memory.size );
-//	} );
-//}
-//
-//const ResourceArchive::ArchiveInfo& ResourceArchive::BinaryArchive::loadEntry( Utilities::GUID ID )
-//{
-//	if ( auto find = loadedEntries.find( ID ); find != loadedEntries.end() )
-//		return find->second;
-//
-//	if ( auto entry = entries.find( ID ); !entry.has_value() )
-//		throw ResourceNotFound( ID );
-//	else
-//	{
-//		auto& info = loadedEntries[ID];
-//		info.ID = ID;
-//		info.name = entries.get<Entries::Name>( *entry );
-//		info.memory.size = entries.get<Entries::DataSize>( *entry );
-//
-//		stream.seekg( entries.get<Entries::DataStart>( *entry ) );
-//		info.memory.data = operator new(info.memory.size);
-//		Utilities::Binary::read( stream, info.memory.data, info.memory.size );
-//		info.saved = true;
-//
-//		return info;
-//	}
-//
-//}
-

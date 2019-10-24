@@ -8,7 +8,7 @@
 
 namespace Resources
 {
-	class BinaryArchive : public IResourceArchive{
+	class BinaryArchive : public IResourceArchive {
 	public:
 		BinaryArchive( std::string_view archivePath, AccessMode mode );
 		~BinaryArchive();
@@ -28,7 +28,7 @@ namespace Resources
 		const Utilities::Memory::Handle		read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator )final;
 
 	private:
-		struct Header{
+		struct Header {
 			uint32_t version = 000001;
 			uint64_t tailStart;
 			uint64_t unusedSpace;
@@ -39,7 +39,7 @@ namespace Resources
 			Utilities::GUID, // Type
 			uint64_t, // Data start
 			uint64_t	 // Data size
-		>{
+		> {
 			static constexpr uint8_t ID = 0;
 			static constexpr uint8_t Name = 1;
 			static constexpr uint8_t Type = 2;
@@ -48,7 +48,7 @@ namespace Resources
 		} entries;
 
 	private:
-		void save_resource_info_data( const std::pair<size_t, Utilities::Memory::Handle>& index_handle, Utilities::Memory::ChunkyAllocator& allocator, bool write_info );
+		void _save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator );
 
 		void readHeader();
 		void readTail();

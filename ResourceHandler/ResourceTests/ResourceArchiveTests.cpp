@@ -8,7 +8,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace ResourceTests
 {
-	TEST_CLASS( ResourceArchiveTests ){
+	TEST_CLASS( ResourceArchiveTests ) {
 public:
 	TEST_METHOD( create_read_only )
 	{
@@ -20,7 +20,7 @@ public:
 	}
 	TEST_METHOD( create )
 	{
-		if ( fs::exists( "test.dat" ) )
+		if (fs::exists( "test.dat" ))
 			fs::remove( "test.dat" );
 		auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
 		Assert::IsTrue( fs::exists( "test.dat" ), L"'test.dat' not created" );
@@ -28,7 +28,7 @@ public:
 	}
 	TEST_METHOD( get_non_exist )
 	{
-		if ( fs::exists( "test.dat" ) )
+		if (fs::exists( "test.dat" ))
 			fs::remove( "test.dat" );
 		auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
 		Assert::ExpectException<Resources::ResourceNotFound>( [&]
@@ -45,35 +45,49 @@ public:
 
 	TEST_METHOD( create_resource )
 	{
-		if ( fs::exists( "test.dat" ) )
+		if (fs::exists( "test.dat" ))
 			fs::remove( "test.dat" );
-		auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
-		Assert::IsFalse( a->exists( "test" ) );
-		Assert::ExpectException<Resources::ResourceNotFound>( [&]
 		{
+			auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
+			Assert::IsFalse( a->exists( "test" ) );
+			Assert::ExpectException<Resources::ResourceNotFound>( [&]
+			{
+				a->set_name( "test", "test" );
+			} );
+			Assert::ExpectException<Resources::ResourceNotFound>( [&]
+			{
+				a->set_type( "test", "test_type" );
+			} );
+			a->create( "test" );
+			Assert::IsTrue( a->exists( "test" ) );
 			a->set_name( "test", "test" );
-		} );
-		Assert::ExpectException<Resources::ResourceNotFound>( [&]
-		{
 			a->set_type( "test", "test_type" );
-		} );
-		a->create( "test" );
-		Assert::IsTrue( a->exists( "test" ) );
-		a->set_name( "test", "test" );
-		a->set_type( "test", "test_type" );
-		Assert::AreEqual<std::string>( "test", a->get_name( "test" ) );
-		Assert::AreEqual<Utilities::StringHash>( "test_type"_hash, a->get_type( "test" ).id );
+			Assert::AreEqual<std::string>( "test", a->get_name( "test" ) );
+			Assert::AreEqual<Utilities::StringHash>( "test_type"_hash, a->get_type( "test" ).id );
 
-		Utilities::Memory::ChunkyAllocator all( 64 );
-		auto handle = all.allocate( sizeof( int ) );
-		all.use_data( handle, []( const Utilities::Memory::MemoryBlock mem )
+			Utilities::Memory::ChunkyAllocator all( 64 );
+			auto handle = all.allocate( sizeof( int ) );
+			all.use_data( handle, []( const Utilities::Memory::MemoryBlock mem )
+			{
+				mem = 1337;
+			} );
+
+			a->save_resource_info_data( { "test", handle }, all );
+		}
+
 		{
-			mem = 1337;
-		} );
+			auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
+			Assert::IsTrue( a->exists( "test" ) );
+			Assert::AreEqual<std::string>( "test", a->get_name( "test" ) );
+			Assert::AreEqual<Utilities::StringHash>( "test_type"_hash, a->get_type( "test" ).id );
 
-		Resources::To_Save_Vector To_Save_Vector;
-		To_Save_Vector.push_back( { "test"_hash, handle } );
-		a->save( { {"test", handle} } );
+			Utilities::Memory::ChunkyAllocator all( 64 );
+			auto handle = a->read( "test", all );
+			all.use_data( handle, []( const Utilities::Memory::MemoryBlock mem )
+			{
+				Assert::AreEqual( 1337, mem.peek<int>() );
+			} );
+		}
 	}
 	};
 }
