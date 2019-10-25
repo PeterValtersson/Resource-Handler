@@ -16,7 +16,7 @@ DECLSPEC_RH std::shared_ptr<Resources::IResourceHandler> Resources::IResourceHan
 {
 	switch ( mode )
 	{
-	case Resources::AccessMode::read_only:
+	case Resources::AccessMode::read:
 		resourceHandler =  std::make_shared<ResourceHandler_Read>( archive );
 		break;
 	case Resources::AccessMode::read_write:

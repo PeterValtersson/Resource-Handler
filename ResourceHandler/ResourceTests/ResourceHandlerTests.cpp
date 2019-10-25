@@ -20,7 +20,7 @@ namespace ResourceTests
 
 		TEST_METHOD( Create_Resource_Read_Only )
 		{
-			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_only, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_only ) );
+			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read ) );
 
 			Assert::ExpectException<Resources::ResourceNotFound>( []
 			{
@@ -30,8 +30,8 @@ namespace ResourceTests
 
 		TEST_METHOD( Read_Resource )
 		{
-			if ( fs::exists( "test.dat" ) )
-				fs::remove( "test.dat" );
+			if ( fs::exists( "test2.dat" ) )
+				fs::remove( "test2.dat" );
 			{
 				auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
 				a->create( "test" );
@@ -47,7 +47,7 @@ namespace ResourceTests
 			}
 
 			{
-				auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_only, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_only ) );
+				auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read ) );
 
 				Resources::Resource r( "test" );
 				r.use_data( []( const Utilities::Memory::MemoryBlock mem )

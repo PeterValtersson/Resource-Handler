@@ -14,7 +14,7 @@ public:
 	{
 		Assert::ExpectException<Resources::PathNotFound>( [&]
 		{
-			Resources::IResourceArchive::create_binary_archive( "shouldnotexist.dat", Resources::AccessMode::read_only );
+			Resources::IResourceArchive::create_binary_archive( "shouldnotexist.dat", Resources::AccessMode::read );
 		} );
 
 	}

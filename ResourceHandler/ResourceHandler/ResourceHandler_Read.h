@@ -11,12 +11,12 @@
 
 namespace Resources
 {
-	enum class Resource_State{
-		Pass0 = 1 << 0,
-		Pass1 = 1 << 1,
-		Pass2 = 1 << 2
+	enum class Pass {
+		Unloaded		= 0,
+		Loaded_Raw		= 1 << 0,
+		Loaded_Parsed	= 1 << 1,
+		Loaded_VRAM		= 1 << 2
 	};
-
 
 	class ResourceHandler_Read : public IResourceHandler{
 	public:
@@ -32,22 +32,23 @@ namespace Resources
 		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback ) override;
 
 		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,
-			Resource_State, // State,
+			Pass, // Passes loaded,
 			Utilities::Memory::Handle,	 // pass0Handle
 			Utilities::Memory::Handle,	 // pass1Handle
 			Utilities::Memory::Handle,	 // pass2Handle
-			RefCount, // RefCount
-			
+			RefCount
 		>{
 			static const uint8_t ID = 0;
-			static const uint8_t State = 1;
-			static const uint8_t pass0Handle = 2;
-			static const uint8_t pass1Handle = 3;
-			static const uint8_t pass2Handle = 4;
-			static const uint8_t RefCount = 5;	
+			static const uint8_t passes_loaded = 1;
+			static const uint8_t raw_handle = 2;
+			static const uint8_t parsed_handle = 3;
+			static const uint8_t vram_handle = 4;
+			static const uint8_t ref_count = 5;	
 		} resources;
 	protected:
 		virtual void			update()noexcept;
+		virtual void			send_resouces_for_raw_loading()noexcept;
+		virtual void			process_resouces_from_raw_loading()noexcept;
 
 		std::shared_ptr<IResourceArchive> archive;
 		Utilities::Concurrent<Utilities::Memory::ChunkyAllocator> allocator;
@@ -55,30 +56,31 @@ namespace Resources
 		std::vector<std::string> log;
 		bool running;
 
-		struct Pass0{
+		struct Loader_Raw{
 			Utilities::CircularFiFo<std::pair<Utilities::GUID, std::promise<Utilities::Memory::Handle>>> to_load;
 			std::vector<std::pair<Utilities::GUID, std::future<Utilities::Memory::Handle>>> futures;
-			bool loading( Utilities::GUID ID )
+			const bool loading( Utilities::GUID ID )const
 			{
 				for ( auto& p : futures )
 					if ( p.first == ID )
 						return true;
 				return false;
 			}
+			void add_to_load( const Utilities::GUID ID )noexcept;
 			std::thread thread;
 			void entry( bool* running )noexcept;
 
 
-			Pass0( std::shared_ptr<IResourceArchive> archive,
+			Loader_Raw( std::shared_ptr<IResourceArchive> archive,
 				   Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator ) : archive( archive ), allocator( allocator )
 			{}
 			std::shared_ptr<IResourceArchive> archive;
 			Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator;
-		}pass0;
+		}loader_raw;
 
 
 		Utilities::CircularFiFo<Utilities::Memory::Handle> loaded_pass1;
 	};
 }
-ENUM_FLAGS( Resources::Resource_State );
+ENUM_FLAGS( Resources::Pass );
 #endif

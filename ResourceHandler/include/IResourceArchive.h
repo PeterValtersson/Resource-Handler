@@ -32,8 +32,9 @@ namespace Resources
 		ArchiveCorrupt( uint32_t corruptionType ) : Utilities::Exception( "Archive is corrupted. \nError: " + std::to_string( corruptionType ) )
 		{}
 	};
+
 	enum class AccessMode{
-		read_only,
+		read,
 		read_write
 	};
 	typedef std::pair<Utilities::GUID, const Utilities::Memory::Handle> To_Save;
