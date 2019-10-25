@@ -1,4 +1,4 @@
-#include "ResourceHandler.h"
+#include "ResourceHandler_Read.h"
 
 #pragma data_seg (".RH_SHAREDMEMORY")
 std::shared_ptr<Resources::IResourceHandler> resourceHandler = nullptr;
@@ -12,9 +12,18 @@ std::shared_ptr<Resources::IResourceHandler> Resources::IResourceHandler::get()
 	return resourceHandler;
 }
 
-DECLSPEC_RH std::shared_ptr<Resources::IResourceHandler> Resources::IResourceHandler::create( AccessMode mode, std::vector<std::unique_ptr<IResourceArchive>>& archives )
+DECLSPEC_RH std::shared_ptr<Resources::IResourceHandler> Resources::IResourceHandler::create( AccessMode mode, std::shared_ptr<IResourceArchive> archive )
 {
-	if ( mode == AccessMode::read_only )
-		resourceHandler = std::make_shared<ResourceHandler>( archives );
+	switch ( mode )
+	{
+	case Resources::AccessMode::read_only:
+		resourceHandler =  std::make_shared<ResourceHandler_Read>( archive );
+	case Resources::AccessMode::read_write:
+		resourceHandler = std::make_shared<ResourceHandler_Read>( archive );
+		break;
+	default:
+		throw UNKOWN_ERROR;
+		break;
+	}
 	return resourceHandler;
 }

@@ -15,7 +15,7 @@ namespace Resources
 		{}
 	};
 	struct WriteInReadOnly : public Utilities::Exception{
-		WriteInReadOnly(  ) : Utilities::Exception( "Tried to write when in read only mode" )
+		WriteInReadOnly() : Utilities::Exception( "Tried to write to resource while in read-only mode." )
 		{}
 	};
 	struct ResourceNotFound : public Utilities::Exception{
@@ -40,7 +40,7 @@ namespace Resources
 	typedef std::vector<std::pair<Utilities::GUID, const Utilities::Memory::Handle>> To_Save_Vector;
 	class IResourceArchive{
 	public:
-		DECLSPEC_RA static std::unique_ptr<IResourceArchive> create_binary_archive( std::string_view path, AccessMode mode );
+		DECLSPEC_RA static std::shared_ptr<IResourceArchive> create_binary_archive( std::string_view path, AccessMode mode );
 
 		virtual ~IResourceArchive()
 		{};

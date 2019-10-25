@@ -18,13 +18,13 @@
     <ClInclude Include="..\include\IResourceHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\DLL_Export.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceHandler_Read.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -32,7 +32,7 @@
     <ClCompile Include="IResourceHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceHandler.cpp">
+    <ClCompile Include="ResourceHandler_Read.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include <Utilities/Flags.h>
 #include <Utilities/Memory/ChunkyAllocator.h>
 #include <future>
+#include <Utilities/Concurrent.h>
 
 namespace Resources
 {
@@ -17,17 +18,17 @@ namespace Resources
 	};
 
 
-	class ResourceHandler : public IResourceHandler{
+	class ResourceHandler_Read : public IResourceHandler{
 	public:
-		ResourceHandler( std::vector<std::unique_ptr<IResourceArchive>>& archives );
-		~ResourceHandler();
+		ResourceHandler_Read( std::shared_ptr<IResourceArchive> archive );
+		~ResourceHandler_Read();
 
-		virtual void			update()noexcept override;
+		
 	protected:
-		virtual void			register_resource( Utilities::GUID ID )noexcept override;
-		virtual void			inc_refCount( Utilities::GUID ID )  override;
-		virtual void			dec_refCount( Utilities::GUID ID )  override;
-		virtual RefCount		get_refCount( Utilities::GUID ID )const override;
+		virtual void			register_resource( Utilities::GUID ID ) override;
+		virtual void			inc_refCount( Utilities::GUID ID )noexcept  override;
+		virtual void			dec_refCount( Utilities::GUID ID )noexcept  override;
+		virtual RefCount		get_refCount( Utilities::GUID ID )const noexcept override;
 		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback ) override;
 
 		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,
@@ -41,8 +42,11 @@ namespace Resources
 			static const uint8_t State = 3;
 		} resources;
 	protected:
-		std::vector<std::unique_ptr<IResourceArchive>> archives;
-		Utilities::Memory::ChunkyAllocator allocator;
+		virtual void			update()noexcept;
+
+		std::shared_ptr<IResourceArchive> archive;
+		Utilities::Concurrent<Utilities::Memory::ChunkyAllocator> allocator;
+		std::thread thread;
 		std::vector<std::string> log;
 		bool running;
 
@@ -57,9 +61,14 @@ namespace Resources
 				return false;
 			}
 			std::thread thread;
-			void entry( bool* running, ResourceHandler* rh );
+			void entry( bool* running )noexcept;
 
 
+			Pass0( std::shared_ptr<IResourceArchive> archive,
+				   Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator ) : archive( archive ), allocator( allocator )
+			{}
+			std::shared_ptr<IResourceArchive> archive;
+			Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator;
 		}pass0;
 
 
