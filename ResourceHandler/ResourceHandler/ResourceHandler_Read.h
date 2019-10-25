@@ -32,14 +32,19 @@ namespace Resources
 		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback ) override;
 
 		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,
-			Utilities::Memory::Handle,	 // Data Handle
+			Resource_State, // State,
+			Utilities::Memory::Handle,	 // pass0Handle
+			Utilities::Memory::Handle,	 // pass1Handle
+			Utilities::Memory::Handle,	 // pass2Handle
 			RefCount, // RefCount
-			Resource_State // State
+			
 		>{
 			static const uint8_t ID = 0;
-			static const uint8_t Handle = 1;
-			static const uint8_t RefCount = 2;
-			static const uint8_t State = 3;
+			static const uint8_t State = 1;
+			static const uint8_t pass0Handle = 2;
+			static const uint8_t pass1Handle = 3;
+			static const uint8_t pass2Handle = 4;
+			static const uint8_t RefCount = 5;	
 		} resources;
 	protected:
 		virtual void			update()noexcept;

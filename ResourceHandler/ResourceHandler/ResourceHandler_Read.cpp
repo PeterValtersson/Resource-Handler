@@ -9,7 +9,7 @@ bool is_ready( const std::future<T>& f )
 
 
 
-
+using namespace std::chrono_literals;
 
 
 
@@ -40,7 +40,7 @@ void Resources::ResourceHandler_Read::update()noexcept
 		auto refCounts = resources.get<Entries::RefCount>();
 		auto states = resources.get<Entries::State>();
 		auto ids = resources.get<Entries::ID>();
-		auto handles = resources.get<Entries::Handle>();
+		auto pass0_handle = resources.get<Entries::pass0Handle>();
 		for ( size_t i = 0; i < resources.size(); i++ )
 		{
 			if ( refCounts[i] > 0 && !(states[i] & Resource_State::Pass0) )
@@ -62,7 +62,7 @@ void Resources::ResourceHandler_Read::update()noexcept
 				{
 					if ( auto find = resources.find( pass0.futures[i].first ); find.has_value() )
 					{
-						handles[*find] = pass0.futures[i].second.get();
+						pass0_handle[*find] = pass0.futures[i].second.get();
 						states[*find] |= Resource_State::Pass0;
 					}
 				}
@@ -72,6 +72,8 @@ void Resources::ResourceHandler_Read::update()noexcept
 				log.push_back( e.what() + std::string( " GUID: " ) + std::to_string( pass0.futures[i].first ) );
 			}
 		}
+
+		std::this_thread::sleep_for( 32ms );
 	}
 }
 
@@ -118,8 +120,7 @@ void Resources::ResourceHandler_Read::use_data( Utilities::GUID ID, const std::f
 		"Write to log";
 	else
 	{
-		while ( !(resources.peek<Entries::State>( *find )& Resource_State::Pass0) )
-			update();
+		while ( !(resources.peek<Entries::State>( *find )& Resource_State::Pass0) );
 
 		allocator( [&]( Utilities::Memory::ChunkyAllocator& a )
 		{

@@ -9,7 +9,7 @@ namespace Resources
 {
 	class Resource {
 	public:
-		Resource( Utilities::GUID ID ) : ID(ID)
+		Resource( Utilities::GUID ID ) : ID(ID), checkedIn(false)
 		{
 			IResourceHandler::get()->register_resource( ID );
 		}
