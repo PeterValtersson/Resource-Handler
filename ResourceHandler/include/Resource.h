@@ -28,21 +28,21 @@ namespace Resources
 			return ID == other.ID;
 		}
 
-		void check_in() 
+		void check_in() noexcept
 		{
 			if ( !checkedIn )
 				IResourceHandler::get()->inc_refCount( ID );
 			checkedIn = true;
 		}
 
-		void check_out() 
+		void check_out() noexcept
 		{
 			if ( checkedIn )
 				IResourceHandler::get()->dec_refCount( ID );
 			checkedIn = false;
 		}
 
-		uint32_t total_refCount()const
+		uint32_t total_refCount()const noexcept
 		{
 			return IResourceHandler::get()->get_refCount( ID );
 		}
@@ -55,7 +55,8 @@ namespace Resources
 
 		void write( const char* const data, size_t size )
 		{
-
+			check_in();
+			IResourceHandler::get()->write_data( ID, data, size );
 		}
 		template<class T>
 		void write( const T& t )

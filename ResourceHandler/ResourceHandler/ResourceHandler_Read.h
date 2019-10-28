@@ -11,11 +11,11 @@
 
 namespace Resources
 {
-	enum class Pass {
-		Unloaded		= 0,
-		Loaded_Raw		= 1 << 0,
-		Loaded_Parsed	= 1 << 1,
-		Loaded_VRAM		= 1 << 2
+	enum class Pass{
+		Unloaded = 0,
+		Loaded_Raw = 1 << 0,
+		Loaded_Parsed = 1 << 1,
+		Loaded_VRAM = 1 << 2
 	};
 
 	class ResourceHandler_Read : public IResourceHandler{
@@ -23,13 +23,39 @@ namespace Resources
 		ResourceHandler_Read( std::shared_ptr<IResourceArchive> archive );
 		~ResourceHandler_Read();
 
-		
+
 	protected:
 		virtual void			register_resource( Utilities::GUID ID ) override;
 		virtual void			inc_refCount( Utilities::GUID ID )noexcept  override;
 		virtual void			dec_refCount( Utilities::GUID ID )noexcept  override;
 		virtual RefCount		get_refCount( Utilities::GUID ID )const noexcept override;
 		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) override;
+
+		void										process_resource_actions_queues();
+		Utilities::CircularFiFo<Utilities::GUID>	register_resource_queue;
+		void										register_resources();
+
+		Utilities::CircularFiFo<Utilities::GUID>	inc_refCount_queue;
+		void										inc_refCounts();
+
+		Utilities::CircularFiFo<Utilities::GUID>	dec_refCount_queue;
+		void										dec_refCounts();
+
+		struct get_refCount_info{
+			Utilities::GUID ID;
+			std::promise<RefCount> promise;
+		};
+		mutable Utilities::CircularFiFo<get_refCount_info>	get_refCount_queue;
+		void												get_refCounts();
+		
+		struct use_data_info{
+			Utilities::GUID ID;
+			std::promise<Utilities::Memory::Handle> promise;
+		};
+		Utilities::CircularFiFo<use_data_info>		use_data_queue;
+		void										use_datas();
+
+
 
 		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,
 			Pass, // Passes loaded,
@@ -43,9 +69,9 @@ namespace Resources
 			static const uint8_t raw_handle = 2;
 			static const uint8_t parsed_handle = 3;
 			static const uint8_t vram_handle = 4;
-			static const uint8_t ref_count = 5;	
+			static const uint8_t ref_count = 5;
 		} resources;
-	protected:
+
 		virtual void			update()noexcept;
 		virtual void			send_resouces_for_raw_loading()noexcept;
 		virtual void			process_resouces_from_raw_loading()noexcept;
@@ -72,7 +98,7 @@ namespace Resources
 
 
 			Loader_Raw( std::shared_ptr<IResourceArchive> archive,
-				   Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator ) : archive( archive ), allocator( allocator )
+						Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator ) : archive( archive ), allocator( allocator )
 			{}
 			std::shared_ptr<IResourceArchive> archive;
 			Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator;
