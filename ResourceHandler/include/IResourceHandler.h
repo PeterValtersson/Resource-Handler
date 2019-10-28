@@ -22,10 +22,10 @@ namespace Resources {
 		virtual void			inc_refCount( Utilities::GUID ID )noexcept = 0;
 		virtual void			dec_refCount( Utilities::GUID ID )noexcept = 0;
 		virtual RefCount		get_refCount( Utilities::GUID ID )const noexcept = 0;
-		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback ) = 0;
-		virtual void			write_data( Utilities::GUID ID, const Utilities::Memory::MemoryBlock data ) { throw WriteInReadOnly(); }
+		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) = 0;
+		virtual void			write_data( Utilities::GUID ID, const char* const data, size_t size ) { throw WriteInReadOnly(); }
 		virtual void			set_type( Utilities::GUID ID ) { throw WriteInReadOnly(); }
-		virtual void			set_name( Utilities::GUID ID, const std::string& name ) { throw WriteInReadOnly(); }
+		virtual void			set_name( Utilities::GUID ID, std::string_view name ) { throw WriteInReadOnly(); }
 		IResourceHandler() { }
 	};
 }

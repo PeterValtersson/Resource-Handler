@@ -27,12 +27,18 @@
     <ClInclude Include="ResourceHandler_Read.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ResourceHandler_Write.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IResourceHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ResourceHandler_Read.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceHandler_Write.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

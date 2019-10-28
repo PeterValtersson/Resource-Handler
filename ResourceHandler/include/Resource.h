@@ -47,12 +47,21 @@ namespace Resources
 			return IResourceHandler::get()->get_refCount( ID );
 		}
 
-		void use_data(const std::function<void(const Utilities::Memory::MemoryBlock data)>& callback)
+		void use_data(const std::function<void(const Utilities::Memory::ConstMemoryBlock data)>& callback)
 		{
 			check_in();
 			IResourceHandler::get()->use_data( ID, callback );
 		}
 
+		void write( const char* const data, size_t size )
+		{
+
+		}
+		template<class T>
+		void write( const T& t )
+		{
+
+		}
 	protected:
 		Utilities::GUID ID;
 		bool checkedIn;

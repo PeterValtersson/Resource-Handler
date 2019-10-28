@@ -49,7 +49,7 @@ void Resources::ResourceHandler_Read::send_resouces_for_raw_loading() noexcept
 	auto ids = resources.get<Entries::ID>();
 	for (size_t i = 0; i < resources.size(); i++) // Change to pick N random resources and check if they are loaded (pass0)
 	{
-		if (!(passes[i] & Pass::Loaded_Raw)) // Change to only load if we have memory to spare
+		if (!(passes[i] & Pass::Loaded_Raw) && archive->get_size( ids[i] ) > 0) // Change to only load if we have memory to spare
 		{
 			if (!loader_raw.loading( ids[i] ))
 				loader_raw.add_to_load( ids[i] );
@@ -134,7 +134,7 @@ Resources::RefCount Resources::ResourceHandler_Read::get_refCount( Utilities::GU
 	return 0;
 }
 
-void Resources::ResourceHandler_Read::use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback )
+void Resources::ResourceHandler_Read::use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback )
 {
 	PROFILE;
 	if (auto find = resources.find( ID ); !find.has_value())
@@ -145,13 +145,14 @@ void Resources::ResourceHandler_Read::use_data( Utilities::GUID ID, const std::f
 
 		allocator( [&]( Utilities::Memory::ChunkyAllocator& a )
 		{
-			a.use_data( resources.peek<Entries::raw_handle>( *find ), callback );
+			a.peek_data( resources.peek<Entries::raw_handle>( *find ), callback );
 		} );
 	}
 }
 
 void Resources::ResourceHandler_Read::Loader_Raw::add_to_load( const Utilities::GUID ID )noexcept
 {
+	PROFILE;
 	std::promise<Utilities::Memory::Handle> p;
 	futures.push_back( { ID, std::move( p.get_future() ) } );
 	to_load.push( { ID, std::move( p ) } );
@@ -159,15 +160,15 @@ void Resources::ResourceHandler_Read::Loader_Raw::add_to_load( const Utilities::
 
 void Resources::ResourceHandler_Read::Loader_Raw::entry( bool* running ) noexcept
 {
+	PROFILE;
 	while (*running)
 	{
 		while (!to_load.isEmpty())
 		{
+			PROFILE_N( Load_Raw );
 			auto& top = to_load.top();
-
 			if (archive->exists( top.first ))
 			{
-
 				allocator( [&]( Utilities::Memory::ChunkyAllocator& a )
 				{
 					try

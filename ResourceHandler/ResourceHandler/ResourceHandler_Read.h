@@ -29,7 +29,7 @@ namespace Resources
 		virtual void			inc_refCount( Utilities::GUID ID )noexcept  override;
 		virtual void			dec_refCount( Utilities::GUID ID )noexcept  override;
 		virtual RefCount		get_refCount( Utilities::GUID ID )const noexcept override;
-		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback ) override;
+		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) override;
 
 		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,
 			Pass, // Passes loaded,
