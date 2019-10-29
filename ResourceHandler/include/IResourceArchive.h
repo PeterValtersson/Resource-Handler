@@ -7,11 +7,12 @@
 #include <Utilities/Memory/ChunkyAllocator.h>
 #include <memory>
 #include <functional>
+#include <atomic>
 
 namespace Resources
 {
 	struct PathNotFound : public Utilities::Exception{
-		PathNotFound( std::string_view path ) : Utilities::Exception( "Path could not be found. Path: " + std::string(path) )
+		PathNotFound( std::string_view path ) : Utilities::Exception( "Path could not be found. Path: " + std::string( path ) )
 		{}
 	};
 	struct WriteInReadOnly : public Utilities::Exception{
@@ -37,6 +38,7 @@ namespace Resources
 		read,
 		read_write
 	};
+
 	typedef std::pair<Utilities::GUID, const Utilities::Memory::Handle> To_Save;
 	typedef std::vector<std::pair<Utilities::GUID, const Utilities::Memory::Handle>> To_Save_Vector;
 	class IResourceArchive{
@@ -53,7 +55,7 @@ namespace Resources
 		//
 		//  \exception ResourceNotFound
 		virtual const size_t			get_size( const Utilities::GUID ID )const = 0;
-			
+
 		// Will get the name of the resource specified
 		//
 		//  \exception ResourceNotFound

@@ -23,8 +23,8 @@ namespace Resources
 		virtual ~IResourceHandler()
 		{}
 
-		DECLSPEC_RH static std::shared_ptr<Resources::IResourceHandler> get();
-		DECLSPEC_RH static void create( AccessMode mode, std::shared_ptr<IResourceArchive> archive /*, Renderer*/ );
+		DECLSPEC_RH static Resources::IResourceHandler& get();
+		DECLSPEC_RH static Resources::IResourceHandler& create( AccessMode mode, std::shared_ptr<IResourceArchive> archive /*, Renderer*/ );
 	protected:
 		virtual void			register_resource( Utilities::GUID ID ) = 0;
 		virtual void			inc_refCount( Utilities::GUID ID )noexcept = 0;

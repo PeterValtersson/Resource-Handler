@@ -11,7 +11,7 @@ namespace Resources
 	public:
 		Resource( Utilities::GUID ID ) : ID(ID), checkedIn(false)
 		{
-			IResourceHandler::get()->register_resource( ID );
+			IResourceHandler::get().register_resource( ID );
 		}
 		Resource( const Resource& other ) = delete;
 		Resource( Resource&& other ) = delete;
@@ -31,32 +31,32 @@ namespace Resources
 		void check_in() noexcept
 		{
 			if ( !checkedIn )
-				IResourceHandler::get()->inc_refCount( ID );
+				IResourceHandler::get().inc_refCount( ID );
 			checkedIn = true;
 		}
 
 		void check_out() noexcept
 		{
 			if ( checkedIn )
-				IResourceHandler::get()->dec_refCount( ID );
+				IResourceHandler::get().dec_refCount( ID );
 			checkedIn = false;
 		}
 
 		uint32_t total_refCount()const noexcept
 		{
-			return IResourceHandler::get()->get_refCount( ID );
+			return IResourceHandler::get().get_refCount( ID );
 		}
 
 		void use_data(const std::function<void(const Utilities::Memory::ConstMemoryBlock data)>& callback)
 		{
 			check_in();
-			IResourceHandler::get()->use_data( ID, callback );
+			IResourceHandler::get().use_data( ID, callback );
 		}
 
 		void write( const char* const data, size_t size )
 		{
 			check_in();
-			IResourceHandler::get()->write_data( ID, data, size );
+			IResourceHandler::get().write_data( ID, data, size );
 		}
 		template<class T>
 		void write( const T& t )

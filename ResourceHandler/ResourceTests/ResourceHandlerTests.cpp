@@ -46,14 +46,13 @@ public:
 		}
 
 		{
-			auto ra = Resources::IResourceArchive::create_binary_archive( "test2.dat", Resources::AccessMode::read );
-			Resources::IResourceHandler::create( Resources::AccessMode::read, ra );
+			Resources::IResourceHandler::create( Resources::AccessMode::read, Resources::IResourceArchive::create_binary_archive( "test2.dat", Resources::AccessMode::read ) );
 
-			//Resources::Resource r( "test" );
-			/*r.use_data( []( const Utilities::Memory::ConstMemoryBlock mem )
+			Resources::Resource r( "test" );
+			r.use_data( []( const Utilities::Memory::ConstMemoryBlock mem )
 			{
 				Assert::AreEqual( 1337, mem.peek<int>() );
-			} );*/
+			} );
 		}
 
 	}

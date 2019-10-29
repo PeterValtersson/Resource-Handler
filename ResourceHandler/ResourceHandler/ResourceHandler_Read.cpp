@@ -17,18 +17,20 @@ using namespace std::chrono_literals;
 
 
 Resources::ResourceHandler_Read::ResourceHandler_Read( std::shared_ptr<IResourceArchive> archive )
-	: archive( archive ), allocator( 1_gb / Utilities::Memory::ChunkyAllocator::blocksize() ), loader_raw( archive, allocator )
+	: archive( archive ), allocator( 1_gb / Utilities::Memory::ChunkyAllocator::blocksize() ), loader_raw(archive, allocator )
 {
 	running = true;
-	//thread = std::thread( &ResourceHandler_Read::update, this );
-	//loader_raw.thread = std::thread( &Loader_Raw::entry, &loader_raw, &running );
+	thread = std::thread( &ResourceHandler_Read::update, this );
+	loader_raw.thread = std::thread( &Loader_Raw::entry, &loader_raw, &running );
 }
 
 Resources::ResourceHandler_Read::~ResourceHandler_Read()
 {
 	running = false;
-	//thread.join();
-	//loader_raw.thread.join();
+	if ( thread.joinable() )
+		thread.join();
+	if ( loader_raw.thread.joinable() )
+		loader_raw.thread.join();
 }
 
 void Resources::ResourceHandler_Read::update()noexcept
@@ -228,14 +230,14 @@ void Resources::ResourceHandler_Read::use_datas()
 				top.promise.set_value( resources.peek<Entries::raw_handle>( *r ) );
 				use_data_queue.pop();
 			}
-				
+
 		}
 		catch ( ... )
 		{
 			top.promise.set_exception( std::current_exception() );
 			use_data_queue.pop();
 		}
-		
+
 	}
 }
 

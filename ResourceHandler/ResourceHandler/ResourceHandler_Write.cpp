@@ -12,6 +12,10 @@ void Resources::ResourceHandler_Write::register_resource( Utilities::GUID ID )
 
 void Resources::ResourceHandler_Write::write_data( Utilities::GUID ID, const char* const data, size_t size )
 {
+	allocator( []( Utilities::Memory::ChunkyAllocator& a )
+	{
+		a.
+	} );
 }
 
 void Resources::ResourceHandler_Write::set_type( Utilities::GUID ID )
