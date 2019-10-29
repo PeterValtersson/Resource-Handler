@@ -225,7 +225,7 @@ void Resources::ResourceHandler_Read::use_datas()
 			{
 				throw NoResourceData( top.ID );
 			}
-			else if ( resources.peek<Entries::passes_loaded>( *r )& Pass::Loaded_Raw )
+			else if ( resources.peek<Entries::passes_loaded>( *r ) & Pass::Loaded_Raw )
 			{
 				top.promise.set_value( resources.peek<Entries::raw_handle>( *r ) );
 				use_data_queue.pop();
