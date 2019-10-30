@@ -25,35 +25,18 @@ namespace Resources
 
 
 	protected:
-		virtual void			register_resource( Utilities::GUID ID ) override;
-		virtual void			inc_refCount( Utilities::GUID ID )noexcept  override;
-		virtual void			dec_refCount( Utilities::GUID ID )noexcept  override;
-		virtual RefCount		get_refCount( Utilities::GUID ID )const noexcept override;
-		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) override;
-
-		void										process_resource_actions_queues();
-		Utilities::CircularFiFo<Utilities::GUID>	register_resource_queue;
-		void										register_resources();
-
-		Utilities::CircularFiFo<Utilities::GUID>	inc_refCount_queue;
-		void										inc_refCounts();
-
-		Utilities::CircularFiFo<Utilities::GUID>	dec_refCount_queue;
-		void										dec_refCounts();
-
-		struct get_refCount_info{
-			Utilities::GUID ID;
-			std::promise<RefCount> promise;
-		};
-		mutable Utilities::CircularFiFo<get_refCount_info>	get_refCount_queue;
-		void												get_refCounts();
-		
+		virtual void			register_resource( const Utilities::GUID ID ) override;
+		virtual void			inc_refCount( const Utilities::GUID ID )noexcept  override;
+		virtual void			dec_refCount( const Utilities::GUID ID )noexcept  override;
+		virtual RefCount		get_refCount( const Utilities::GUID ID )const noexcept override;
+		virtual void			use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback )const override;
+	
 		struct use_data_info{
 			Utilities::GUID ID;
 			std::promise<Utilities::Memory::Handle> promise;
 		};
-		Utilities::CircularFiFo<use_data_info>		use_data_queue;
-		void										use_datas();
+		mutable Utilities::CircularFiFo<use_data_info>	use_data_queue;
+		void											use_datas()const noexcept;
 
 
 
@@ -70,7 +53,8 @@ namespace Resources
 			static const uint8_t parsed_handle = 3;
 			static const uint8_t vram_handle = 4;
 			static const uint8_t ref_count = 5;
-		} resources;
+		} ;
+		Utilities::Concurrent<Entries> resources;
 
 		virtual void			update()noexcept;
 		virtual void			send_resouces_for_raw_loading()noexcept;

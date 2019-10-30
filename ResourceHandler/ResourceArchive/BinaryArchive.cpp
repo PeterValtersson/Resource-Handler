@@ -113,7 +113,7 @@ void Resources::BinaryArchive::_save_resource_info_data( const To_Save& to_save,
 		throw ResourceNotFound( to_save.first );
 	else
 	{
-		allocator.use_data( to_save.second, [&]( const Utilities::Memory::MemoryBlock mem )
+		allocator.peek_data( to_save.second, [&]( const Utilities::Memory::ConstMemoryBlock mem )
 		{
 			if ( mem.used_size <= entries.peek<Entries::DataSize>( *entry ) )
 			{

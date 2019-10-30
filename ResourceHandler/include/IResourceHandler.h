@@ -26,16 +26,16 @@ namespace Resources
 		DECLSPEC_RH static Resources::IResourceHandler& get();
 		DECLSPEC_RH static Resources::IResourceHandler& create( AccessMode mode, std::shared_ptr<IResourceArchive> archive /*, Renderer*/ );
 	protected:
-		virtual void			register_resource( Utilities::GUID ID ) = 0;
-		virtual void			inc_refCount( Utilities::GUID ID )noexcept = 0;
-		virtual void			dec_refCount( Utilities::GUID ID )noexcept = 0;
-		virtual RefCount		get_refCount( Utilities::GUID ID )const noexcept = 0;
-		virtual void			use_data( Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) = 0;
-		virtual void			write_data( Utilities::GUID ID, const char* const data, size_t size )
+		virtual void			register_resource(const Utilities::GUID ID ) = 0;
+		virtual void			inc_refCount( const Utilities::GUID ID )noexcept = 0;
+		virtual void			dec_refCount( const Utilities::GUID ID )noexcept = 0;
+		virtual RefCount		get_refCount( const Utilities::GUID ID )const noexcept = 0;
+		virtual void			use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback )const = 0;
+		virtual void			write_data( const Utilities::GUID ID, const void* const data, const size_t size )
 		{
 			throw WriteInReadOnly();
 		}
-		virtual void			set_type( Utilities::GUID ID )
+		virtual void			set_type( Utilities::GUID ID, Utilities::GUID type )
 		{
 			throw WriteInReadOnly();
 		}
