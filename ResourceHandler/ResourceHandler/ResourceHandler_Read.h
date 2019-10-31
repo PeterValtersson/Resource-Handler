@@ -35,8 +35,8 @@ namespace Resources
 			Utilities::GUID ID;
 			std::promise<Utilities::Memory::Handle> promise;
 		};
-		mutable Utilities::CircularFiFo<use_data_info>	use_data_queue;
-		void											use_datas()const noexcept;
+		mutable Utilities::CircularFiFo_Multiple_Producers<use_data_info>	use_data_queue;
+		void																use_datas()const noexcept;
 
 
 

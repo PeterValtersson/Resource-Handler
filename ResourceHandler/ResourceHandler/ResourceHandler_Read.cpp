@@ -199,6 +199,7 @@ void Resources::ResourceHandler_Read::use_datas()const noexcept
 		}
 		use_data_queue.pop();
 	}
+
 }
 
 void Resources::ResourceHandler_Read::Loader_Raw::add_to_load( const Utilities::GUID ID )noexcept
