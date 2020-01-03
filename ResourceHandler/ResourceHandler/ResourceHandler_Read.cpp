@@ -2,9 +2,9 @@
 #include <Utilities/Profiler/Profiler.h>
 
 template<typename T>
-bool is_ready( const std::future<T>& f )
+bool is_ready(const std::future<T>& f)
 {
-	return f.wait_for( std::chrono::milliseconds( 0 ) ) == std::future_status::ready;
+	return f.valid() && f.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready;
 }
 
 
@@ -16,227 +16,286 @@ using namespace std::chrono_literals;
 
 
 
-Resources::ResourceHandler_Read::ResourceHandler_Read( std::shared_ptr<IResourceArchive> archive )
-	: archive( archive ), allocator( 1_gb / Utilities::Memory::ChunkyAllocator::blocksize() ), loader_raw( archive, allocator )
+Resources::ResourceHandler_Read::ResourceHandler_Read(std::shared_ptr<IResourceArchive> archive)
+	: archive(archive), allocator(1_gb / Utilities::Memory::ChunkyAllocator::blocksize()), loader(archive, allocator)
 {
 	running = true;
-	thread = std::thread( &ResourceHandler_Read::update, this );
-	loader_raw.thread = std::thread( &Loader_Raw::entry, &loader_raw, &running );
+	thread = std::thread(&ResourceHandler_Read::update, this);
+	loader.start();
 }
 
 Resources::ResourceHandler_Read::~ResourceHandler_Read()
 {
 	running = false;
-	if ( thread.joinable() )
+	if (thread.joinable())
 		thread.join();
-	if ( loader_raw.thread.joinable() )
-		loader_raw.thread.join();
+	loader.stop();
 }
 
 void Resources::ResourceHandler_Read::update()noexcept
 {
-	PROFILE;
-	while ( running )
+	using namespace std::placeholders;
+	PROFILE("Resource Handler Thread");
+	while (running)
 	{
-		send_resouces_for_raw_loading();
-		process_resouces_from_raw_loading();
+		PROFILE("Running");
+		register_resources();
+		inc_refCounts();
+		dec_refCounts();
+		get_refCounts();
+
+		loader.update(std::bind(&ResourceHandler_Read::resource_loading_finished, this, _1, _2, _3),
+			std::bind(&ResourceHandler_Read::choose_resource_to_load, this));
+
 		use_datas();
-		std::this_thread::sleep_for( 32ms );
+		std::this_thread::sleep_for(32ms);
 	}
 }
-
-void Resources::ResourceHandler_Read::send_resouces_for_raw_loading() noexcept
+void Resources::ResourceHandler_Read::resource_loading_finished(Utilities::GUID ID, Utilities::Memory::Handle handle, Status status)
 {
 	PROFILE;
-	resources( [this]( Entries& r )
+	if (auto find = resources.find(ID); !find.has_value())
+		return; // Logg Resource no longer in use and has been unregistered.
+	else
 	{
-		auto passes = r.get<Entries::passes_loaded>();
-		auto ids = r.get<Entries::ID>();
-		for ( size_t i = 0; i < r.size(); i++ ) // Change to pick N random resources and check if they are loaded (pass0)
-		{
-			if ( !(passes[i] & Pass::Loaded_Raw) && archive->get_size( ids[i] ) > 0 ) // Change to only load if we have memory to spare
-			{
-				if ( !loader_raw.loading( ids[i] ) )
-					loader_raw.add_to_load( ids[i] );
-			}
-		}
-
-	} );
-
+		resources.get<Entries::Memory_Raw>(*find) = handle;
+		resources.get<Entries::Status>(*find) |= status;
+		resources.get<Entries::Status>(*find) &= ~Status::Loading;
+	}
 }
-
-template<class T>
-void remove_element_replace_with_last( std::vector<T>& t, size_t i )
-{
-	t[i] = std::move( t.back() );
-	t.pop_back();
-}
-
-void Resources::ResourceHandler_Read::process_resouces_from_raw_loading() noexcept
+Utilities::optional<Utilities::GUID> Resources::ResourceHandler_Read::choose_resource_to_load()
 {
 	PROFILE;
-	for ( size_t i = 0; i < loader_raw.futures.size(); i++ )
+	for (size_t i = 0; i < resources.size(); ++i)// TODO: Change to a suitable method for choosing resource to load  (FIFO, FILO, Highest refcount, etc.)
 	{
-		try
+		if (!flag_has(resources.peek<Entries::Status>(i), Status::In_Memory | Status::Could_Not_Load))
 		{
-			if ( is_ready( loader_raw.futures[i].second ) )
+			if (archive->get_size(resources.peek<Entries::ID>(i)) > 0)
 			{
-				resources( [this, i]( Entries& r )
-				{
-					if ( auto find = r.find( loader_raw.futures[i].first ); find.has_value() )
-					{
-						r.get<Entries::raw_handle>( *find ) = loader_raw.futures[i].second.get();
-						r.get<Entries::passes_loaded>( *find ) |= Pass::Loaded_Raw;
-					}
-					else
-						log.push_back( "Resource has been unregistered before finishing raw_loading. GUID: " + std::to_string( loader_raw.futures[i].first ) );
-				} );
-
-
-				remove_element_replace_with_last( loader_raw.futures, i );
-				--i;
+				resources.get<Entries::Status>(i) |= Status::Loading;
+				return resources.peek<Entries::ID>(i);
 			}
-		}
-		catch ( std::exception & e )
-		{
-			log.push_back( e.what() + std::string( " GUID: " ) + std::to_string( loader_raw.futures[i].first ) );
-			remove_element_replace_with_last( loader_raw.futures, i );
-			--i;
 		}
 	}
-
+	return std::nullopt;
 }
 
-void Resources::ResourceHandler_Read::register_resource( const Utilities::GUID ID )
+void Resources::ResourceHandler_Read::register_resource(const Utilities::GUID ID)noexcept
 {
 	PROFILE;
-	if ( !archive->exists( ID ) )
-		throw ResourceNotFound( ID );
-	resources( [ID]( Entries& r )
-	{
-		const auto index = r.add( ID );
-		r.set<Entries::passes_loaded>( index, Pass::Unloaded );
-	} );
+	if (!archive->exists(ID))
+		return;
+
+	to_register.push(ID);
 }
 
-void Resources::ResourceHandler_Read::inc_refCount( const Utilities::GUID ID )noexcept
+void Resources::ResourceHandler_Read::inc_refCount(const Utilities::GUID ID)noexcept
 {
 	PROFILE;
-	resources( [ID]( Entries& r )
-	{
-		if ( const auto i = r.find( ID ); !i.has_value() )
-			"Write to log";
-		else
-			++r.get<Entries::ref_count>( *i );
-	} );
+	to_inc_refCount.push(ID);
 }
 
-void Resources::ResourceHandler_Read::dec_refCount( const Utilities::GUID ID )noexcept
+void Resources::ResourceHandler_Read::dec_refCount(const Utilities::GUID ID)noexcept
 {
 	PROFILE;
-	resources( [ID]( Entries& r )
-	{
-		if ( const auto i = r.find( ID ); !i.has_value() )
-			"Write to log";
-		else
-			--r.get<Entries::ref_count>( *i );
-	} );
+	to_dec_refCount.push(ID);
 }
 
-Resources::RefCount Resources::ResourceHandler_Read::get_refCount( const Utilities::GUID ID ) const noexcept
+Resources::RefCount Resources::ResourceHandler_Read::get_refCount(const Utilities::GUID ID) const noexcept
 {
 	PROFILE;
-	return resources( [ID]( Entries& r )-> RefCount
-	{
-		if ( const auto i = r.find( ID ); !i.has_value() )
-		{
-			"Write to log";
-			return 0;
-		}
-		else
-			return r.peek<Entries::ref_count>( *i );
-	} );
+	std::promise<RefCount> p;
+	auto f = p.get_future();
+	to_get_refCount.push({ ID, std::move(p) });
+	return p.get_future().get();
 }
 
-void Resources::ResourceHandler_Read::use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback )const
+void Resources::ResourceHandler_Read::use_data(const Utilities::GUID ID, const std::function<void(const Utilities::Memory::ConstMemoryBlock)>& callback)const
 {
 	PROFILE;
 	std::promise<Utilities::Memory::Handle> p;
 	auto f = p.get_future();
-	use_data_queue.push( { ID, std::move( p ) } );
-
-	const auto handle = f.get();
-	allocator( [&]( Utilities::Memory::ChunkyAllocator& a )
+	use_data_queue.push({ ID, std::move(p) });
+	try
 	{
-		a.peek_data( handle, callback );
-	} );
+		const auto handle = f.get();
+		allocator([&](const Utilities::Memory::ChunkyAllocator& a)
+			{
+				a.peek_data(handle, callback);
+			});
+	}
+	catch (...)
+	{
 
+	}
+}
+
+void Resources::ResourceHandler_Read::register_resources() noexcept
+{
+	PROFILE;
+	while (!to_register.isEmpty())
+	{
+		auto& top = to_register.top();
+		if (const auto find = resources.find(top); !find.has_value())
+			resources.add(top, Status::None, 0, 0, 0);
+		to_register.pop(); // Should always pop
+	}
+}
+
+void Resources::ResourceHandler_Read::inc_refCounts() noexcept
+{
+	PROFILE;
+	while (!to_inc_refCount.isEmpty())
+	{
+		auto& top = to_inc_refCount.top();
+		if (const auto find = resources.find(top); !find.has_value())
+		{
+			++resources.get<Entries::RefCount>(*find);
+			to_inc_refCount.pop(); // Only pop if resource was found (otherwise wait for the resource to be registered)
+		}
+		else
+			break;
+	}
+}
+
+void Resources::ResourceHandler_Read::dec_refCounts() noexcept
+{
+	PROFILE;
+	while (!to_dec_refCount.isEmpty())
+	{
+		auto& top = to_dec_refCount.top();
+		if (const auto find = resources.find(top); !find.has_value())
+		{
+			--resources.get<Entries::RefCount>(*find);
+			to_dec_refCount.pop();
+		}
+		else
+			break;
+	}
+}
+
+void Resources::ResourceHandler_Read::get_refCounts() const noexcept
+{
+	PROFILE;
+	while (!to_get_refCount.isEmpty())
+	{
+		auto& top = to_get_refCount.top();
+		if (const auto find = resources.find(top.ID); !find.has_value())
+		{
+			top.promise.set_value(resources.peek<Entries::RefCount>(*find));
+			to_get_refCount.pop();
+		}
+		else
+			break;
+	}
 }
 
 void Resources::ResourceHandler_Read::use_datas()const noexcept
 {
 	PROFILE;
-	if ( !use_data_queue.isEmpty() )
+	while (!use_data_queue.isEmpty())
 	{
 		auto& top = use_data_queue.top();
-		try
+		if (const auto find = resources.find(top.ID); !find.has_value())
 		{
-			resources( [&top, this]( const Entries& r )
+			try
 			{
-				if ( const auto i = r.find( top.ID ); !i.has_value() )
-					throw ResourceNotFound( top.ID );
-				else if ( archive->get_size( top.ID ) == 0 )
-					throw NoResourceData( top.ID );
-				else if ( r.peek<Entries::passes_loaded>( *i )& Pass::Loaded_Raw )
-					top.promise.set_value( r.peek<Entries::raw_handle>( *i ) );
-				else
-					use_data_queue.push( std::move( top ) );
-			} );
+				if (archive->get_size(top.ID) == 0)
+					throw NoResourceData(archive->get_name(top.ID), top.ID);
+				else if (flag_has(resources.peek<Entries::Status>(*find), Status::In_Memory_Parsed))
+				{
+					top.promise.set_value(resources.peek<Entries::Memory_Parsed>(*find));
+					use_data_queue.pop();
+				}
+
+				else if (flag_has(resources.peek<Entries::Status>(*find), Status::In_Memory))
+				{
+					top.promise.set_value(resources.peek<Entries::Memory_Raw>(*find));
+					use_data_queue.pop();
+				}
+			}
+			catch (...)
+			{
+				top.promise.set_exception(std::current_exception());
+				use_data_queue.pop();
+			}
+
 		}
-		catch ( ... )
-		{
-			top.promise.set_exception( std::current_exception() );
-		}
-		use_data_queue.pop();
+		else
+			break;
 	}
 
 }
 
-void Resources::ResourceHandler_Read::Loader_Raw::add_to_load( const Utilities::GUID ID )noexcept
+void Resources::ResourceHandler_Read::Loader::start()noexcept
 {
-	PROFILE;
-	std::promise<Utilities::Memory::Handle> p;
-	futures.push_back( { ID, std::move( p.get_future() ) } );
-	to_load.push( { ID, std::move( p ) } );
+	running = true;
+	thread = std::thread(&Resources::ResourceHandler_Read::Loader::run, this);
 }
 
-void Resources::ResourceHandler_Read::Loader_Raw::entry( bool* running ) noexcept
+void Resources::ResourceHandler_Read::Loader::stop()noexcept
 {
-	PROFILE;
-	while ( *running )
+	running = false;
+	if (thread.joinable())
+		thread.join();
+}
+
+void Resources::ResourceHandler_Read::Loader::update(
+	std::function<void(Utilities::GUID ID, Utilities::Memory::Handle handle, Status status)> do_if_finished,
+	std::function<Utilities::optional<Utilities::GUID>()> choose_to_load)noexcept
+{
+	if (is_ready(to_load.future))
 	{
-		while ( !to_load.isEmpty() )
+		try
 		{
-			PROFILE_N( Load_Raw );
-			auto& top = to_load.top();
-			if ( archive->exists( top.first ) )
+			auto result = to_load.future.get();
+			do_if_finished(to_load.ID, result.handle, result.status);
+		}
+		catch (ResourceNotFound & e)
+		{
+			do_if_finished(to_load.ID, 0, Status::Not_Found);
+		}
+		catch (Utilities::Memory::InvalidHandle & e)
+		{
+			do_if_finished(to_load.ID, 0, Status::Could_Not_Load);
+		}
+	}
+
+	if (!to_load.load)
+	{
+		if (auto id = choose_to_load(); id.has_value())
+		{
+			to_load.promise = decltype(to_load.promise)();
+			to_load.future = to_load.promise.get_future();
+			to_load.ID = *id;
+			to_load.load = true;
+		}
+	}
+}
+
+void Resources::ResourceHandler_Read::Loader::run()noexcept
+{
+	PROFILE_N("Loader Thread");
+	while (running)
+	{
+		PROFILE_N("Running");
+		if (to_load.load)
+		{
+			try
 			{
-				allocator( [&]( Utilities::Memory::ChunkyAllocator& a )
-				{
-					try
+				auto handle = allocator([this](Utilities::Memory::ChunkyAllocator& a)
 					{
-						auto handle = archive->read( top.first, a );
-						top.second.set_value( handle );
-					}
-					catch ( ... )
-					{
-						top.second.set_exception( std::current_exception() );
-					}
-				} );
+						return archive->read(to_load.ID, a);
+					});
+				to_load.promise.set_value({ Status::Not_Found, handle });
+			}
+			catch (...)
+			{
+				to_load.promise.set_exception(std::current_exception());
 			}
 
-			to_load.pop();
+
+			to_load.load = false;
 		}
-		std::this_thread::sleep_for( 32ms );
 	}
 }

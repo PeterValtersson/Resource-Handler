@@ -17,16 +17,6 @@ public:
 		Resources::IResourceHandler::get();
 	}
 
-	TEST_METHOD( Create_Resource_Read_Only )
-	{
-		Resources::IResourceHandler::create( Resources::AccessMode::read, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read ) );
-
-		Assert::ExpectException<Resources::ResourceNotFound>( []
-		{
-			Resources::Resource r( "test" );
-		} );
-	}
-
 	TEST_METHOD( Read_Resource )
 	{
 		if ( fs::exists( "test2.dat" ) )

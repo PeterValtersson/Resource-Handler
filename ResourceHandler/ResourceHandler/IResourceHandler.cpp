@@ -1,10 +1,9 @@
 #include "ResourceHandler_Read.h"
 
-//#pragma data_seg (".RH_SHAREDMEMORY")
-//
-//#pragma data_seg() 
-//#pragma comment(linker,"/SECTION:.RH_SHAREDMEMORY,RWS")
-static std::unique_ptr<Resources::IResourceHandler> resource_handler;
+#pragma data_seg (".RH_SHAREDMEMORY")
+std::unique_ptr<Resources::IResourceHandler> resource_handler;
+#pragma data_seg() 
+#pragma comment(linker,"/SECTION:.RH_SHAREDMEMORY,RWS")
 Resources::IResourceHandler& Resources::IResourceHandler::get()
 {
 	if ( !resource_handler )
