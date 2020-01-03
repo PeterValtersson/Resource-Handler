@@ -67,7 +67,7 @@ public:
 
 			Utilities::Memory::ChunkyAllocator all( 64 );
 			auto handle = all.allocate( sizeof( int ) );
-			all.use_data( handle, []( const Utilities::Memory::MemoryBlock mem )
+			all.use_data( handle, [](  Utilities::Memory::MemoryBlock mem )
 			{
 				mem = 1337;
 			} );
