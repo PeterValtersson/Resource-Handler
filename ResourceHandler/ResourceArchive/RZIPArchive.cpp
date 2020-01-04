@@ -67,11 +67,11 @@ void Resources::RZIPArchive::save( const To_Save& to_save, Utilities::Memory::Ch
 			entry = archive->CreateEntry( entries.peek<Entries::Name>( *find ) );
 		else if ( entry->IsRawStreamOpened() )
 			entry->CloseRawStream();
-		allocator.peek_data( to_save.second, [entry]( const Utilities::Memory::ConstMemoryBlock data )
+		std::unique_ptr<imemstream> contentStream;
+		allocator.peek_data( to_save.second, [&, entry]( const Utilities::Memory::ConstMemoryBlock data )
 		{
-			
-			imemstream contentStream((char*)data.get_char(), data.used_size );
-			entry->SetCompressionStream( contentStream, StoreMethod::Create(), ZipArchiveEntry::CompressionMode::Immediate );
+			contentStream = std::make_unique<imemstream>( (char*)data.get_char(), data.used_size );
+			entry->SetCompressionStream( *contentStream.get(), StoreMethod::Create());
 		} );
 
 		save_entries();
@@ -81,7 +81,7 @@ void Resources::RZIPArchive::save( const To_Save& to_save, Utilities::Memory::Ch
 void Resources::RZIPArchive::save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
 {
 	PROFILE;
-	
+	std::vector<std::unique_ptr<imemstream>> streams;
 	for ( auto& to_save : to_save_vector )
 	{
 		if ( auto find = entries.find( to_save.first ); find.has_value() )
@@ -92,10 +92,10 @@ void Resources::RZIPArchive::save_multiple( const To_Save_Vector& to_save_vector
 			else if ( entry->IsRawStreamOpened() )
 				entry->CloseRawStream();
 
-			allocator.peek_data( to_save.second, [entry]( const Utilities::Memory::ConstMemoryBlock data )
+			allocator.peek_data( to_save.second, [&, entry]( const Utilities::Memory::ConstMemoryBlock data )
 			{
-				auto s = data.get_stream();
-				entry->SetCompressionStream( s, StoreMethod::Create(), ZipArchiveEntry::CompressionMode::Immediate );
+				streams.push_back( std::make_unique<imemstream>( (char*)data.get_char(), data.used_size ) );
+				entry->SetCompressionStream( *streams.back().get(), StoreMethod::Create() );
 			} );
 
 
@@ -173,13 +173,13 @@ void Resources::RZIPArchive::save_entries() noexcept
 {
 	if ( auto aentries = archive->GetEntry( "entries" ); !aentries )
 		aentries = archive->CreateEntry( "entries" );
-	else if( aentries->IsRawStreamOpened() )
+	else if ( aentries->IsRawStreamOpened() )
 		aentries->CloseRawStream();
 
 	auto aentries = archive->GetEntry( "entries" );
 	std::stringstream ss;
 	entries.writeToFile( ss );
 	aentries->SetCompressionStream( ss );
-	
+
 	ZipFile::Save( archive, archive_path );
 }
