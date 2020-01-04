@@ -48,6 +48,7 @@ void Resources::ResourceHandler_Read::update()noexcept
 			std::bind(&ResourceHandler_Read::choose_resource_to_load, this));
 
 		use_datas();
+		loader.run();
 		std::this_thread::sleep_for(32ms);
 	}
 }
@@ -231,8 +232,9 @@ void Resources::ResourceHandler_Read::use_datas()const noexcept
 
 void Resources::ResourceHandler_Read::Loader::start()noexcept
 {
+	to_load.load = false;
 	running = true;
-	thread = std::thread(&Resources::ResourceHandler_Read::Loader::run, this);
+	//thread = std::thread(&Resources::ResourceHandler_Read::Loader::run, this);
 }
 
 void Resources::ResourceHandler_Read::Loader::stop()noexcept
@@ -278,7 +280,7 @@ void Resources::ResourceHandler_Read::Loader::update(
 void Resources::ResourceHandler_Read::Loader::run()noexcept
 {
 	PROFILE_N("Loader Thread");
-	while (running)
+	//while (running)
 	{
 		PROFILE_N("Running");
 		if (to_load.load)

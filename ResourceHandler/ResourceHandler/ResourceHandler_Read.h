@@ -89,8 +89,10 @@ namespace Resources
 			void update(
 				std::function<void(Utilities::GUID ID, Utilities::Memory::Handle handle, Status status)> do_if_finished,
 				std::function<Utilities::optional<Utilities::GUID>()> choose_to_load)noexcept;
-		private:
+
 			void run()noexcept;
+		private:
+			
 
 			bool running;	
 			Load_Parse_Info to_load;
