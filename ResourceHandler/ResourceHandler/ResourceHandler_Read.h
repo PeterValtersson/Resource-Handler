@@ -1,5 +1,5 @@
-#ifndef _RESOURCE_HANDLER_H_
-#define _RESOURCE_HANDLER_H_
+#ifndef _RESOURCE_HANDLER_READ_H_
+#define _RESOURCE_HANDLER_READ_H_
 #include <IResourceHandler.h>
 #include <Utilities/CircularFIFO.h>
 #include <thread>
@@ -21,7 +21,7 @@ namespace Resources
 		virtual void			inc_refCount(const Utilities::GUID ID)noexcept  override;
 		virtual void			dec_refCount(const Utilities::GUID ID)noexcept  override;
 		virtual RefCount		get_refCount(const Utilities::GUID ID)const noexcept override;
-		virtual void			use_data(const Utilities::GUID ID, const std::function<void(const Utilities::Memory::ConstMemoryBlock)>& callback)const override;
+		virtual void			use_data(const Utilities::GUID ID, const std::function<void(const Utilities::Memory::ConstMemoryBlock)>& callback) noexcept override;
 
 
 

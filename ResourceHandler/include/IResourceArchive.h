@@ -43,7 +43,7 @@ namespace Resources
 		read_write
 	};
 
-	typedef std::pair<Utilities::GUID, const Utilities::Memory::Handle> To_Save;
+	typedef std::pair<Utilities::GUID, Utilities::Memory::Handle> To_Save;
 	typedef std::vector<std::pair<Utilities::GUID, const Utilities::Memory::Handle>> To_Save_Vector;
 	class IResourceArchive{
 	public:

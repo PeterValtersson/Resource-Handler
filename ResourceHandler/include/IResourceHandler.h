@@ -28,8 +28,8 @@ namespace Resources
 		{}
 	};
 
-	struct NoResourceData : public Utilities::Exception{
-		NoResourceData( const std::string& name, Utilities::GUID ID ) : Utilities::Exception( "Resource has no data: " + name + ", " + std::to_string( ID ) )
+	struct NoResourceData : public Utilities::Exception {
+		NoResourceData( const std::string& name, Utilities::GUID ID ) : Utilities::Exception( "Resource has no data: " + name + ", GUID:" + std::to_string( ID ) )
 		{}
 	};
 
@@ -44,13 +44,18 @@ namespace Resources
 		DECLSPEC_RH static void set(std::shared_ptr<Resources::IResourceHandler> rh);
 		DECLSPEC_RH static std::shared_ptr<Resources::IResourceHandler> create( AccessMode mode, std::shared_ptr<IResourceArchive> archive );
 
+		virtual void save_all()
+		{
+			throw WriteInReadOnly();
+		}
+
 	protected:
 		/* Only called by Resource*/
 		virtual void		register_resource(const Utilities::GUID ID )noexcept = 0;
 		virtual void		inc_refCount( const Utilities::GUID ID )noexcept = 0;
 		virtual void		dec_refCount( const Utilities::GUID ID )noexcept = 0;
 		virtual RefCount	get_refCount( const Utilities::GUID ID )const noexcept = 0;
-		virtual void		use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback )const = 0;
+		virtual void		use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) noexcept = 0;
 		virtual void		write_data( const Utilities::GUID ID, const void* const data, const size_t size )
 		{
 			throw WriteInReadOnly();

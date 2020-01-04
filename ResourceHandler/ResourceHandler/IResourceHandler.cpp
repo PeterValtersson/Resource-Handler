@@ -1,4 +1,5 @@
 #include "ResourceHandler_Read.h"
+#include "ResourceHandler_Write.h"
 
 #pragma data_seg (".RH_SHAREDMEMORY")
 std::weak_ptr<Resources::IResourceHandler> resource_handler;
@@ -25,7 +26,7 @@ DECLSPEC_RH std::shared_ptr<Resources::IResourceHandler> Resources::IResourceHan
 		return std::make_shared<ResourceHandler_Read>( archive );
 		break;
 	case Resources::AccessMode::read_write:
-		return std::make_shared<ResourceHandler_Read>( archive );
+		return std::make_shared<ResourceHandler_Write>( archive );
 		break;
 	default:
 		throw UNKOWN_ERROR;

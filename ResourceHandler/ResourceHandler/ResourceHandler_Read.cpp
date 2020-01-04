@@ -111,7 +111,7 @@ Resources::RefCount Resources::ResourceHandler_Read::get_refCount(const Utilitie
 	return p.get_future().get();
 }
 
-void Resources::ResourceHandler_Read::use_data(const Utilities::GUID ID, const std::function<void(const Utilities::Memory::ConstMemoryBlock)>& callback)const
+void Resources::ResourceHandler_Read::use_data(const Utilities::GUID ID, const std::function<void(const Utilities::Memory::ConstMemoryBlock)>& callback) noexcept
 {
 	PROFILE;
 	std::promise<Utilities::Memory::Handle> p;
