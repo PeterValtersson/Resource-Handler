@@ -1,0 +1,6 @@
+[submodule "master"]
+	path = master
+	url = https://bitbucket.org/wbenny/ziplib/src/master/
+[submodule "ziplib"]
+	path = ziplib
+	url = https://bitbucket.org/wbenny/ziplib
