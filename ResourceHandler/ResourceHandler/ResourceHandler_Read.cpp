@@ -196,7 +196,7 @@ void Resources::ResourceHandler_Read::use_datas()const noexcept
 	while (!use_data_queue.isEmpty())
 	{
 		auto& top = use_data_queue.top();
-		if (const auto find = resources.find(top.ID); !find.has_value())
+		if (const auto find = resources.find(top.ID); find.has_value())
 		{
 			try
 			{
@@ -213,6 +213,8 @@ void Resources::ResourceHandler_Read::use_datas()const noexcept
 					top.promise.set_value(resources.peek<Entries::Memory_Raw>(*find));
 					use_data_queue.pop();
 				}
+				else
+					break;
 			}
 			catch (...)
 			{
@@ -249,7 +251,7 @@ void Resources::ResourceHandler_Read::Loader::update(
 		try
 		{
 			auto result = to_load.future.get();
-			do_if_finished(to_load.ID, result.handle, result.status);
+			do_if_finished(to_load.ID, result, Status::In_Memory);
 		}
 		catch (ResourceNotFound & e)
 		{
@@ -287,7 +289,7 @@ void Resources::ResourceHandler_Read::Loader::run()noexcept
 					{
 						return archive->read(to_load.ID, a);
 					});
-				to_load.promise.set_value({ Status::Not_Found, handle });
+				to_load.promise.set_value( handle );
 			}
 			catch (...)
 			{

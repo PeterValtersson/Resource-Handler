@@ -40,8 +40,10 @@ namespace Resources
 		virtual ~IResourceHandler()
 		{}
 
-		DECLSPEC_RH static Resources::IResourceHandler& get();
-		DECLSPEC_RH static Resources::IResourceHandler& create( AccessMode mode, std::shared_ptr<IResourceArchive> archive );
+		DECLSPEC_RH static std::shared_ptr<Resources::IResourceHandler> get();
+		DECLSPEC_RH static void set(std::shared_ptr<Resources::IResourceHandler> rh);
+		DECLSPEC_RH static std::shared_ptr<Resources::IResourceHandler> create( AccessMode mode, std::shared_ptr<IResourceArchive> archive );
+
 	protected:
 		/* Only called by Resource*/
 		virtual void		register_resource(const Utilities::GUID ID )noexcept = 0;

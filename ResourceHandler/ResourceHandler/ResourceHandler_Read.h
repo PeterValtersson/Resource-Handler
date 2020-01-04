@@ -72,13 +72,9 @@ namespace Resources
 		bool running;
 
 		struct Load_Parse_Info {
-			struct Result {
-				Status status;
-				Utilities::Memory::Handle handle;
-			};
 			Utilities::GUID ID;
-			std::promise<Result> promise;
-			std::future<Result> future;
+			std::promise<Utilities::Memory::Handle> promise;
+			std::future<Utilities::Memory::Handle> future;
 			bool load;
 		};
 
