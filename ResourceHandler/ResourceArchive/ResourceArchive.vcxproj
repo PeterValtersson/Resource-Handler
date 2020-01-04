@@ -73,25 +73,25 @@
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
     <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler/ResourceHandler/include;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler/ResourceHandler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
     <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler/ResourceHandler/include;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler/ResourceHandler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
     <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler/ResourceHandler/include;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler/ResourceHandler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
     <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler/ResourceHandler/include;</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler/ResourceHandler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -148,14 +148,19 @@
   <ItemGroup>
     <ClInclude Include="..\include\IResourceArchive.h" />
     <ClInclude Include="BinaryArchive.h" />
+    <ClInclude Include="RZIPArchive.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BinaryArchive.cpp" />
     <ClCompile Include="IResourceArchive.cpp" />
+    <ClCompile Include="RZIPArchive.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Utilities\Utilities\Profiler\Profiler.vcxproj">
       <Project>{bae4cf46-4926-4052-a0b5-290947489c07}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ZipLib\Source\ZipLib\ZipLib.vcxproj">
+      <Project>{5c9fd859-ddf9-4510-8397-b329b0ae8c48}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

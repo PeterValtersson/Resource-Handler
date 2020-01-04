@@ -1,17 +1,15 @@
-#ifndef _BINARY_RESOURCE_ARCHIVE_H_
-#define _BINARY_RESOURCE_ARCHIVE_H_
-#include <IResourceArchive.h>
-#include <fstream>
+#ifndef _ZIP_ARCHIVE_H_
+#define _ZIP_ARCHIVE_H_
+#pragma once
+#include "IResourceArchive.h"
+#include <ZipFile.h>
 #include <Utilities/Memory/Sofa.h>
-#include <map>
-#include <Utilities/Memory/ChunkyAllocator.h>
-
 namespace Resources
 {
-	class BinaryArchive : public IResourceArchive {
+	class RZIPArchive : public IResourceArchive {
 	public:
-		BinaryArchive( std::string_view archivePath, AccessMode mode );
-		~BinaryArchive();
+		RZIPArchive( std::string_view archivePath, AccessMode mode );
+		~RZIPArchive();
 
 		const size_t			num_resources()const noexcept final;
 		void					create( std::string_view name )final;
@@ -27,40 +25,20 @@ namespace Resources
 		const Utilities::Memory::Handle		read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator )final;
 
 	private:
-
-		struct Header {
-			uint32_t version = 000001;
-			uint64_t tailStart;
-			uint64_t unusedSpace;
-		} header;
+		AccessMode mode;
+		std::string archive_path;
+		ZipArchive::Ptr archive;
 
 		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,
-			char[128],	 // Name
-			Utilities::GUID, // Type
-			uint64_t, // Data start
-			uint64_t	 // Data size
+			char[128]		 // Name
 		> {
 			static constexpr uint8_t ID = 0;
 			static constexpr uint8_t Name = 1;
-			static constexpr uint8_t Type = 2;
-			static constexpr uint8_t DataStart = 3;
-			static constexpr uint8_t DataSize = 4;
 		} entries;
 
 	private:
-		void save_resource_info();
-		void _save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator );
-
-		void readHeader();
-		void readTail();
-
-		void writeHeader();
-		void writeTail();
-
-		std::fstream stream;
-		std::string archivePath;
-
-		static const uint32_t lastestVersion = 000001;
+		void save_entries()noexcept;
 	};
+
 }
 #endif

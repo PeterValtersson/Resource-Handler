@@ -26,12 +26,12 @@ public:
 		Resources::IResourceHandler::get();
 		
 	}
-	TEST_METHOD( Read_Resource )
+	TEST_METHOD( Read_Resource_Simple_Int )
 	{
 		if ( fs::exists( "test2.dat" ) )
 			fs::remove( "test2.dat" );
 		{
-			auto a = Resources::IResourceArchive::create_binary_archive( "test2.dat", Resources::AccessMode::read_write );
+			auto a = Resources::IResourceArchive::create_zip_archive( "test2.dat", Resources::AccessMode::read_write );
 			a->create( "test" );
 			a->set_name( "test", "test" );
 			a->set_type( "test", "test_type" );
@@ -41,11 +41,11 @@ public:
 			{
 				mem = 1337;
 			} );
-			a->save_resource_info_data( { "test", handle }, all );
+			a->save( { "test", handle }, all );
 		}
 
 		{
-			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read, Resources::IResourceArchive::create_binary_archive( "test2.dat", Resources::AccessMode::read ) );
+			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read, Resources::IResourceArchive::create_zip_archive( "test2.dat", Resources::AccessMode::read ) );
 			Resources::IResourceHandler::set(rh);
 			Resources::Resource r( "test" );
 			r.use_data( []( const Utilities::Memory::ConstMemoryBlock mem )

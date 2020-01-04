@@ -180,6 +180,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ResourceArchiveTests.cpp" />
+    <ClCompile Include="ZipArchiveTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ResourceArchive\ResourceArchive.vcxproj">

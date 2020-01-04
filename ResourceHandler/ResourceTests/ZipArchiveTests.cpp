@@ -8,29 +8,29 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace ResourceTests
 {
-	TEST_CLASS( ResourceArchiveTests ) {
+	TEST_CLASS( ZipArchiveTests ) {
 public:
 	TEST_METHOD( create_read_only )
 	{
 		Assert::ExpectException<Resources::PathNotFound>( [&]
 		{
-			Resources::IResourceArchive::create_binary_archive( "shouldnotexist.dat", Resources::AccessMode::read );
+			Resources::IResourceArchive::create_zip_archive( "shouldnotexist.dat", Resources::AccessMode::read );
 		} );
 
 	}
 	TEST_METHOD( create )
 	{
-		if (fs::exists( "test.dat" ))
+		if ( fs::exists( "test.dat" ) )
 			fs::remove( "test.dat" );
-		auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
+		auto a = Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write );
 		Assert::IsTrue( fs::exists( "test.dat" ), L"'test.dat' not created" );
 		Assert::AreEqual( 0ui64, a->num_resources(), L"0 != num_resources()" );
 	}
 	TEST_METHOD( get_non_exist )
 	{
-		if (fs::exists( "test.dat" ))
+		if ( fs::exists( "test.dat" ) )
 			fs::remove( "test.dat" );
-		auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
+		auto a = Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write );
 		Assert::ExpectException<Resources::ResourceNotFound>( [&]
 		{
 			a->get_name( "test" );
@@ -45,29 +45,25 @@ public:
 
 	TEST_METHOD( create_resource )
 	{
-		if (fs::exists( "test.dat" ))
+		if ( fs::exists( "test.dat" ) )
 			fs::remove( "test.dat" );
 		{
-			auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
+			auto a = Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write );
 			Assert::IsFalse( a->exists( "test" ) );
 			Assert::ExpectException<Resources::ResourceNotFound>( [&]
 			{
 				a->set_name( "test", "test" );
 			} );
-			Assert::ExpectException<Resources::ResourceNotFound>( [&]
-			{
-				a->set_type( "test", "test_type" );
-			} );
+
 			a->create( "test" );
 			Assert::IsTrue( a->exists( "test" ) );
 			a->set_name( "test", "test" );
-			a->set_type( "test", "test_type" );
+
 			Assert::AreEqual<std::string>( "test", a->get_name( "test" ) );
-			Assert::AreEqual<Utilities::StringHash>( "test_type"_hash, a->get_type( "test" ).id );
 
 			Utilities::Memory::ChunkyAllocator all( 64 );
 			auto handle = all.allocate( sizeof( int ) );
-			all.use_data( handle, [](  Utilities::Memory::MemoryBlock mem )
+			all.use_data( handle, []( Utilities::Memory::MemoryBlock mem )
 			{
 				mem = 1337;
 			} );
@@ -76,11 +72,10 @@ public:
 		}
 
 		{
-			auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
+			auto a = Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write );
 			Assert::IsTrue( a->exists( "test" ) );
 			Assert::AreEqual<std::string>( "test", a->get_name( "test" ) );
-			Assert::AreEqual<Utilities::StringHash>( "test_type"_hash, a->get_type( "test" ).id );
-
+			
 			Utilities::Memory::ChunkyAllocator all( 64 );
 			auto handle = a->read( "test", all );
 			all.use_data( handle, []( const Utilities::Memory::MemoryBlock mem )

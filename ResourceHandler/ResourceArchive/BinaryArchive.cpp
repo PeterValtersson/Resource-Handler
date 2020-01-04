@@ -62,10 +62,10 @@ const size_t Resources::BinaryArchive::num_resources() const noexcept
 	return entries.size();
 }
 
-void Resources::BinaryArchive::create( const Utilities::GUID ID )
+void Resources::BinaryArchive::create( std::string_view name )
 {
 	PROFILE;
-	entries.add( ID, "", 0, 0, 0 );
+	entries.add( Utilities::GUID(name), name, 0, 0, 0 );
 }
 
 void Resources::BinaryArchive::save_resource_info()
@@ -75,7 +75,7 @@ void Resources::BinaryArchive::save_resource_info()
 	writeTail();
 }
 
-void Resources::BinaryArchive::save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
+void Resources::BinaryArchive::save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
 {
 	PROFILE;
 	try
@@ -89,7 +89,7 @@ void Resources::BinaryArchive::save_resource_info_data( const To_Save& to_save, 
 	save_resource_info();
 }
 
-void Resources::BinaryArchive::save_resource_info_data( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
+void Resources::BinaryArchive::save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
 {
 	PROFILE;
 	for ( const auto& to_save : to_save_vector )

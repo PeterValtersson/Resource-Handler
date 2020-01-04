@@ -23,6 +23,10 @@ namespace Resources
 		ResourceNotFound( Utilities::GUID ID ) : Utilities::Exception( "Could not find resource. GUID: " + std::to_string( ID ) )
 		{}
 	};
+	struct ResourceExists : public Utilities::Exception {
+		ResourceExists( std::string_view name, Utilities::GUID ID ) : Utilities::Exception( "Resource already exists. Name: " + std::string( name ) + " GUID: " + std::to_string(ID) )
+		{}
+	};
 
 	struct PathNotAccessible : public Utilities::Exception{
 		PathNotAccessible( std::string_view path ) : Utilities::Exception( "Could not access path. Path: " + std::string( path ) )
@@ -44,6 +48,7 @@ namespace Resources
 	class IResourceArchive{
 	public:
 		DECLSPEC_RA static std::shared_ptr<IResourceArchive> create_binary_archive( std::string_view path, AccessMode mode );
+		DECLSPEC_RA static std::shared_ptr<IResourceArchive> create_zip_archive( std::string_view path, AccessMode mode );
 
 		virtual ~IResourceArchive()
 		{};
@@ -62,11 +67,10 @@ namespace Resources
 		virtual const std::string		get_name( const Utilities::GUID ID )const = 0;
 
 		virtual const Utilities::GUID	get_type( const Utilities::GUID ID )const = 0;
-		virtual void					create( const Utilities::GUID ID ) = 0;
+		virtual void					create( std::string_view name ) = 0;
 
-		virtual void save_resource_info() = 0;
-		virtual void save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator ) = 0;
-		virtual void save_resource_info_data( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator ) = 0;
+		virtual void save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator ) = 0;
+		virtual void save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator ) = 0;
 
 		// Write a Memory_Block to a resource
 		//
