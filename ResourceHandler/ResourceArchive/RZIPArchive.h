@@ -4,6 +4,8 @@
 #include "IResourceArchive.h"
 #include <ZipFile.h>
 #include <Utilities/Memory/Sofa.h>
+#include <bit7z.hpp>
+
 namespace Resources
 {
 	class RZIPArchive : public IResourceArchive {
@@ -29,6 +31,7 @@ namespace Resources
 	private:
 		AccessMode mode;
 		std::string archive_path;
+		std::wstring archive_path_w;
 		ZipArchive::Ptr archive;
 
 		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,

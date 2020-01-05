@@ -2,12 +2,52 @@
 #include <filesystem>
 #include <Utilities/Profiler/Profiler.h>
 #include <streams/memstream.h>
+#include <Utilities/StringUtilities.h>
+#include <Utilities/MonadicOptional.h>
+#include <Utilities/FStreamHelpers.h>
+
+Utilities::optional<bit7z::BitArchiveItem> find_item( bit7z::BitArchiveInfo& arc, std::wstring name )
+{
+	auto items = arc.items();
+	for ( auto& item : items )
+		if ( item.name() == name )
+			return item;
+	return std::nullopt;
+}
+
+Utilities::optional<size_t> find_item_index( bit7z::BitArchiveInfo& arc, std::wstring name )
+{
+	auto items = arc.items();
+	for ( size_t i = 0; i < items.size(); i++ )
+		if ( items[i].name() == name )
+			return i;
+	return std::nullopt;
+}
 
 namespace fs = std::filesystem;
-Resources::RZIPArchive::RZIPArchive( std::string_view archivePath, AccessMode mode ) : mode( mode ), archive_path( std::string( archivePath ) )
+Resources::RZIPArchive::RZIPArchive( std::string_view archivePath, AccessMode mode ) : mode( mode ), archive_path( std::string( archivePath ) ), archive_path_w( Utilities::String::utf8_2_utf16( archivePath ) )
 {
+	bit7z::Bit7zLibrary lib( L"7za.dll" );
+	bit7z::BitCompressor comp( lib, bit7z::BitFormat::SevenZip );
+
+	std::vector<bit7z::byte_t> buffer;
+	
 	if ( fs::exists( archive_path ) )
 	{
+		try
+		{
+			bit7z::BitArchiveInfo arc( lib, archive_path_w, bit7z::BitFormat::SevenZip );
+			auto aentires = find_item_index( arc, L"entries" );
+			bit7z::BitExtractor extractor( lib, bit7z::BitFormat::SevenZip );
+			extractor.extract( archive_path_w, buffer, *aentires );
+			auto s = Utilities::Binary_Stream::create_stream_from_data( buffer.data(), buffer.size() );
+			entries.readFromFile( s.stream );
+		}
+		catch ( ... )
+		{
+			throw PathNotAccessible( archivePath );
+		}
+
 		archive = ZipFile::Open( archive_path );
 		if ( !archive )
 			throw PathNotAccessible( archivePath );
@@ -197,7 +237,7 @@ const Utilities::Memory::Handle Resources::RZIPArchive::read( const Utilities::G
 		{
 			data.read_from_stream( *entry->GetDecompressionStream() );
 		} );
-		if (entry->IsDecompressionStreamOpened() )
+		if ( entry->IsDecompressionStreamOpened() )
 			entry->CloseDecompressionStream();
 		return handle;
 	}

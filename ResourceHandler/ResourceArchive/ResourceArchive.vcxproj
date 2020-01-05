@@ -73,25 +73,25 @@
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
     <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler\bit7z/include;$(SolutionDir)../../Resource-Handler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
     <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler\bit7z/include;$(SolutionDir)../../Resource-Handler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
     <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler\bit7z/include;$(SolutionDir)../../Resource-Handler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Build/$(Configuration)/$(Platform)/</OutDir>
     <IntDir>$(ProjectDir)Intermediate/$(Configuration)/$(Platform)/</IntDir>
     <TargetExt>.dll</TargetExt>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)../../Utilities/Utilities/Include;$(SolutionDir)../../Resource-Handler\bit7z/include;$(SolutionDir)../../Resource-Handler\ZipLib\Source\ZipLib;$(SolutionDir)../../Resource-Handler/ResourceHandler/include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -101,6 +101,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);_RA_EXPORT_</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -111,6 +112,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);_RA_EXPORT_</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -123,6 +125,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);_RA_EXPORT_</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -139,6 +142,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_WINDLL;%(PreprocessorDefinitions);_RA_EXPORT_</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -158,6 +162,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Utilities\Utilities\Profiler\Profiler.vcxproj">
       <Project>{bae4cf46-4926-4052-a0b5-290947489c07}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\bit7z\bit7z.vcxproj">
+      <Project>{0ecedd47-4ec9-3232-b099-20d54c597639}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\ziplib\Source\ZipLib\ZipLib.vcxproj">
       <Project>{5c9fd859-ddf9-4510-8397-b329b0ae8c48}</Project>
