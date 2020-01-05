@@ -14,7 +14,7 @@ Resources::RZIPArchive::RZIPArchive( std::string_view archivePath, AccessMode mo
 
 		auto aentries = archive->GetEntry( "entries" );
 		entries.readFromFile( *aentries->GetDecompressionStream() );
-
+		aentries->CloseDecompressionStream();
 	}
 	else
 	{
@@ -43,7 +43,7 @@ const size_t Resources::RZIPArchive::num_resources() const noexcept
 	return entries.size();
 }
 
-void Resources::RZIPArchive::create( std::string_view name )
+Utilities::GUID Resources::RZIPArchive::create_from_name( std::string_view name )
 {
 	PROFILE;
 	if ( auto find = entries.find( Utilities::GUID( name ) ); find.has_value() )
@@ -53,8 +53,31 @@ void Resources::RZIPArchive::create( std::string_view name )
 		entries.add( Utilities::GUID( name ), name );
 		archive->CreateEntry( std::string( name ) );
 	}
+	return Utilities::GUID( name );
+}
 
+void Resources::RZIPArchive::create_from_ID( const Utilities::GUID ID )
+{
+	PROFILE;
+	if ( auto find = entries.find( ID ); find.has_value() )
+		throw ResourceExists( ID.to_string(), ID );
+	else
+	{
+		entries.add( ID, ID.to_string() );
+		archive->CreateEntry( ID.to_string() );
+	}
+}
 
+void Resources::RZIPArchive::create( const Utilities::GUID ID, std::string_view name )
+{
+	PROFILE;
+	if ( auto find = entries.find( ID ); find.has_value() )
+		throw ResourceExists( name, ID );
+	else
+	{
+		entries.add( ID, name );
+		archive->CreateEntry( std::string( name ) );
+	}
 }
 
 void Resources::RZIPArchive::save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
@@ -71,7 +94,7 @@ void Resources::RZIPArchive::save( const To_Save& to_save, Utilities::Memory::Ch
 		allocator.peek_data( to_save.second, [&, entry]( const Utilities::Memory::ConstMemoryBlock data )
 		{
 			contentStream = std::make_unique<imemstream>( (char*)data.get_char(), data.used_size );
-			entry->SetCompressionStream( *contentStream.get(), StoreMethod::Create());
+			entry->SetCompressionStream( *contentStream.get(), StoreMethod::Create() );
 		} );
 
 		save_entries();
@@ -116,8 +139,10 @@ const size_t Resources::RZIPArchive::get_size( const Utilities::GUID ID ) const
 	PROFILE;
 	if ( auto find = entries.find( ID ); !find.has_value() )
 		throw ResourceNotFound( ID );
+	else if ( auto entry = archive->GetEntry( entries.peek<Entries::Name>( *find ) ); entry )
+		return entry->GetSize();
 	else
-		return archive->GetEntry( entries.peek<Entries::Name>( *find ) )->GetSize();
+		return 0;
 }
 
 const std::string Resources::RZIPArchive::get_name( const Utilities::GUID ID ) const
@@ -138,7 +163,15 @@ void Resources::RZIPArchive::set_name( const Utilities::GUID ID, std::string_vie
 {
 	PROFILE;
 	if ( auto find = entries.find( ID ); !find.has_value() )
-		throw ResourceNotFound( ID );
+	{
+		if ( mode == AccessMode::read )
+			throw ResourceNotFound( ID );
+		else
+		{
+			create( ID, name );
+		}
+	}
+
 	else
 	{
 		auto entry = archive->GetEntry( entries.peek<Entries::Name>( *find ) );
@@ -164,6 +197,8 @@ const Utilities::Memory::Handle Resources::RZIPArchive::read( const Utilities::G
 		{
 			data.read_from_stream( *entry->GetDecompressionStream() );
 		} );
+		if (entry->IsDecompressionStreamOpened() )
+			entry->CloseDecompressionStream();
 		return handle;
 	}
 	return 0;

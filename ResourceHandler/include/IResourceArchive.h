@@ -67,7 +67,9 @@ namespace Resources
 		virtual const std::string		get_name( const Utilities::GUID ID )const = 0;
 
 		virtual const Utilities::GUID	get_type( const Utilities::GUID ID )const = 0;
-		virtual void					create( std::string_view name ) = 0;
+		virtual Utilities::GUID			create_from_name( std::string_view name ) = 0;
+		virtual void					create_from_ID( const Utilities::GUID ID ) = 0;
+		virtual void					create( const Utilities::GUID ID, std::string_view name ) = 0;
 
 		virtual void save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator ) = 0;
 		virtual void save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator ) = 0;

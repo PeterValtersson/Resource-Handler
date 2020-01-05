@@ -62,11 +62,18 @@ const size_t Resources::BinaryArchive::num_resources() const noexcept
 	return entries.size();
 }
 
-void Resources::BinaryArchive::create( std::string_view name )
+Utilities::GUID Resources::BinaryArchive::create_from_name( std::string_view name )
 {
 	PROFILE;
 	entries.add( Utilities::GUID(name), name, 0, 0, 0 );
+	return Utilities::GUID( name );
 }
+
+void Resources::BinaryArchive::create_from_ID( const Utilities::GUID ID )
+{}
+
+void Resources::BinaryArchive::create( const Utilities::GUID ID, std::string_view name )
+{}
 
 void Resources::BinaryArchive::save_resource_info()
 {

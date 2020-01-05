@@ -55,7 +55,12 @@ namespace Resources
 		virtual void		inc_refCount( const Utilities::GUID ID )noexcept = 0;
 		virtual void		dec_refCount( const Utilities::GUID ID )noexcept = 0;
 		virtual RefCount	get_refCount( const Utilities::GUID ID )const noexcept = 0;
+		virtual std::string	get_name( const Utilities::GUID ID )const  = 0;
 		virtual void		use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) noexcept = 0;
+		virtual void		modify_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback )
+		{
+			throw WriteInReadOnly();
+		}
 		virtual void		write_data( const Utilities::GUID ID, const void* const data, const size_t size )
 		{
 			throw WriteInReadOnly();

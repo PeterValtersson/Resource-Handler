@@ -18,8 +18,10 @@ namespace Resources
 		virtual void			inc_refCount( const Utilities::GUID ID )noexcept  override;
 		virtual void			dec_refCount( const Utilities::GUID ID )noexcept  override;
 		virtual RefCount		get_refCount( const Utilities::GUID ID )const noexcept override;
-		virtual void			use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) noexcept override;
+		virtual std::string		get_name( const Utilities::GUID ID )const  override;
+		virtual void			use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback )noexcept override;
 
+		virtual void			modify_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback ) override;
 		virtual void		write_data( Utilities::GUID ID, const void* const data, const size_t size );
 		virtual void		set_type( Utilities::GUID ID, Utilities::GUID type );
 		virtual void		set_name( Utilities::GUID ID, std::string_view name );

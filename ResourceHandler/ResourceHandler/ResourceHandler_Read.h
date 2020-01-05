@@ -12,41 +12,65 @@ namespace Resources
 {
 	class ResourceHandler_Read : public IResourceHandler {
 	public:
-		ResourceHandler_Read(std::shared_ptr<IResourceArchive> archive);
+		ResourceHandler_Read( std::shared_ptr<IResourceArchive> archive );
 		~ResourceHandler_Read();
 
 
 	protected:
-		virtual void			register_resource(const Utilities::GUID ID)noexcept override;
-		virtual void			inc_refCount(const Utilities::GUID ID)noexcept  override;
-		virtual void			dec_refCount(const Utilities::GUID ID)noexcept  override;
-		virtual RefCount		get_refCount(const Utilities::GUID ID)const noexcept override;
-		virtual void			use_data(const Utilities::GUID ID, const std::function<void(const Utilities::Memory::ConstMemoryBlock)>& callback) noexcept override;
+		virtual void			register_resource( const Utilities::GUID ID )noexcept override;
+		virtual void			inc_refCount( const Utilities::GUID ID )noexcept  override;
+		virtual void			dec_refCount( const Utilities::GUID ID )noexcept  override;
+		virtual RefCount		get_refCount( const Utilities::GUID ID )const noexcept override;
+		virtual std::string		get_name( const Utilities::GUID ID )const  override;
+		virtual void			use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback )noexcept override;
 
+		struct Action_Request {
+			struct Response {
+				char data[64];
 
+				Response()
+				{
 
-		Utilities::CircularFiFo<Utilities::GUID> to_register;
-		void register_resources()noexcept;
-		
-		Utilities::CircularFiFo<Utilities::GUID> to_inc_refCount;
-		void inc_refCounts()noexcept;
-
-		Utilities::CircularFiFo<Utilities::GUID> to_dec_refCount;
-		void dec_refCounts()noexcept;
-
-		struct get_refCounts_info {
+				}
+				template<typename T>
+				Response(const T other)
+				{
+					assert( sizeof( T ) <= 64 );
+					memcpy( data, &other, sizeof( T ) );
+				}
+				template<typename T>
+				T& operator=( const T other )
+				{
+					assert( sizeof( T ) <= 64 );
+					memcpy( data, &other, sizeof( T ) );
+					return *(T*)data;
+				}
+				template<typename T>
+				T& get( )
+				{
+					return *(T*)data;
+				}
+			};
+			enum class Type {
+				Register_Resource,
+				Inc_RefCount,
+				Dec_RefCount,
+				Get_RefCount,
+				Use_Data
+			};
+			Type type;
 			Utilities::GUID ID;
-			std::promise<RefCount> promise;
+			std::promise<Response> promise;
 		};
-		mutable Utilities::CircularFiFo<get_refCounts_info> to_get_refCount;
-		void get_refCounts()const noexcept;
+		mutable Utilities::CircularFiFo<Action_Request> action_request_queue;
+		std::map<Action_Request::Type, std::function< Action_Request::Response( Utilities::GUID )>> action_map;
+		void perform_actions();
 
-		struct use_data_info {
-			Utilities::GUID ID;
-			std::promise<Utilities::Memory::Handle> promise;
-		};
-		mutable Utilities::CircularFiFo_Multiple_Producers<use_data_info>	use_data_queue;
-		void																use_datas()const noexcept;
+		Action_Request::Response _register_resource( Utilities::GUID ID );
+		Action_Request::Response _inc_refCount( Utilities::GUID ID );
+		Action_Request::Response _dec_refCount( Utilities::GUID ID );
+		Action_Request::Response _get_refCount( Utilities::GUID ID );
+		Action_Request::Response _use_data( Utilities::GUID ID );
 
 
 
@@ -64,7 +88,7 @@ namespace Resources
 		} resources;
 
 		void update()noexcept;
-	
+
 		std::shared_ptr<IResourceArchive> archive;
 		Utilities::Concurrent<Utilities::Memory::ChunkyAllocator> allocator;
 		std::thread thread;
@@ -78,30 +102,29 @@ namespace Resources
 			bool load;
 		};
 
-		class Loader
-		{
+		class Loader {
 		public:
-			Loader(std::shared_ptr<IResourceArchive> archive, Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator) 
-				: archive(archive), allocator(allocator)
+			Loader( std::shared_ptr<IResourceArchive> archive, Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator )
+				: archive( archive ), allocator( allocator )
 			{}
 			void start()noexcept;
 			void stop()noexcept;
 			void update(
-				std::function<void(Utilities::GUID ID, Utilities::Memory::Handle handle, Status status)> do_if_finished,
-				std::function<Utilities::optional<Utilities::GUID>()> choose_to_load)noexcept;
+				std::function<void( Utilities::GUID ID, Utilities::Memory::Handle handle, Status status )> do_if_finished,
+				std::function<Utilities::optional<Utilities::GUID>()> choose_to_load )noexcept;
 
 			void run()noexcept;
 		private:
-			
 
-			bool running;	
+
+			bool running;
 			Load_Parse_Info to_load;
 			std::thread thread;
 
 			std::shared_ptr<IResourceArchive> archive;
 			Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator;
 		}loader;
-		void resource_loading_finished(Utilities::GUID ID, Utilities::Memory::Handle handle, Status status); //Messes with std::function/std::bind noexcept;
+		void resource_loading_finished( Utilities::GUID ID, Utilities::Memory::Handle handle, Status status ); //Messes with std::function/std::bind noexcept;
 		Utilities::optional<Utilities::GUID> choose_resource_to_load(); //Messes with std::function/std::bind noexcept;
 	};
 }

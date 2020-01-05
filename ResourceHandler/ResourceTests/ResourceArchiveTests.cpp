@@ -58,7 +58,7 @@ public:
 			{
 				a->set_type( "test", "test_type" );
 			} );
-			a->create( "test" );
+			a->create_from_name( "test" );
 			Assert::IsTrue( a->exists( "test" ) );
 			a->set_name( "test", "test" );
 			a->set_type( "test", "test_type" );

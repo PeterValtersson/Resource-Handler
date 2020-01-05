@@ -12,7 +12,9 @@ namespace Resources
 		~RZIPArchive();
 
 		const size_t			num_resources()const noexcept final;
-		void					create( std::string_view name )final;
+		Utilities::GUID			create_from_name( std::string_view name )final;
+		void					create_from_ID( const Utilities::GUID ID )final;
+		void					create( const Utilities::GUID ID, std::string_view name )final;
 		void					save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )final;
 		void					save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )final;
 		const bool				exists( const Utilities::GUID ID )const noexcept final;

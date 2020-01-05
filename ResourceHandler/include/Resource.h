@@ -23,45 +23,56 @@ namespace Resources
 			check_out();
 		}
 
-		bool operator==( const Resource& other )const noexcept
+		inline bool operator==( const Resource& other )const noexcept
 		{
 			return ID == other.ID;
 		}
 
-		void check_in() noexcept
+		inline void check_in()
 		{
 			if ( !checkedIn )
 				IResourceHandler::get()->inc_refCount( ID );
 			checkedIn = true;
 		}
 
-		void check_out() noexcept
+		inline void check_out()
 		{
 			if ( checkedIn )
 				IResourceHandler::get()->dec_refCount( ID );
 			checkedIn = false;
 		}
-
-		uint32_t total_refCount()const noexcept
+		inline void set_name(std::string_view name)
+		{
+			IResourceHandler::get()->set_name( ID, name );
+		}
+		inline std::string get_name( )
+		{
+			return IResourceHandler::get()->get_name( ID );
+		}
+		inline uint32_t total_refCount()const
 		{
 			return IResourceHandler::get()->get_refCount( ID );
 		}
 
-		void use_data(const std::function<void(const Utilities::Memory::ConstMemoryBlock data)>& callback)
+		inline void use_data(const std::function<void(const Utilities::Memory::ConstMemoryBlock data)>& callback)
 		{
 			check_in();
 			IResourceHandler::get()->use_data( ID, callback );
 		}
-
-		void write( const char* const data, size_t size )
+		inline void modify_data( const std::function<void( const Utilities::Memory::MemoryBlock data )>& callback )
+		{
+			check_in();
+			IResourceHandler::get()->modify_data( ID, callback );
+		}
+		inline void write( const void* const data, size_t size )
 		{
 			check_in();
 			IResourceHandler::get()->write_data( ID, data, size );
 		}
 		template<class T>
-		void write( const T& t )
+		inline void write( const T& t )
 		{
-
+			write( &t, sizeof( T ) );
 		}
 	protected:
 		Utilities::GUID ID;
