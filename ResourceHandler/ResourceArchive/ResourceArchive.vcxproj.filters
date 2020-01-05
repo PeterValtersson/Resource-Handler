@@ -24,6 +24,9 @@
     <ClInclude Include="RZIPArchive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Bit7zArchive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IResourceArchive.cpp">
@@ -33,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RZIPArchive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Bit7zArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

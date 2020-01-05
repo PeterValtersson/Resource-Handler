@@ -2,9 +2,8 @@
 #define _ZIP_ARCHIVE_H_
 #pragma once
 #include "IResourceArchive.h"
-#include <ZipFile.h>
 #include <Utilities/Memory/Sofa.h>
-#include <bit7z.hpp>
+#include "Bit7zArchive.h"
 
 namespace Resources
 {
@@ -31,8 +30,7 @@ namespace Resources
 	private:
 		AccessMode mode;
 		std::string archive_path;
-		std::wstring archive_path_w;
-		ZipArchive::Ptr archive;
+		Bit7zArchive::Ptr archive;
 
 		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,
 			char[128]		 // Name

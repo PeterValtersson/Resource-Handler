@@ -2,74 +2,56 @@
 #include <filesystem>
 #include <Utilities/Profiler/Profiler.h>
 #include <streams/memstream.h>
-#include <Utilities/StringUtilities.h>
-#include <Utilities/MonadicOptional.h>
 #include <Utilities/FStreamHelpers.h>
 
-Utilities::optional<bit7z::BitArchiveItem> find_item( bit7z::BitArchiveInfo& arc, std::wstring name )
-{
-	auto items = arc.items();
-	for ( auto& item : items )
-		if ( item.name() == name )
-			return item;
-	return std::nullopt;
-}
-
-Utilities::optional<size_t> find_item_index( bit7z::BitArchiveInfo& arc, std::wstring name )
-{
-	auto items = arc.items();
-	for ( size_t i = 0; i < items.size(); i++ )
-		if ( items[i].name() == name )
-			return i;
-	return std::nullopt;
-}
 
 namespace fs = std::filesystem;
-Resources::RZIPArchive::RZIPArchive( std::string_view archivePath, AccessMode mode ) : mode( mode ), archive_path( std::string( archivePath ) ), archive_path_w( Utilities::String::utf8_2_utf16( archivePath ) )
+Resources::RZIPArchive::RZIPArchive( std::string_view archivePath, AccessMode mode ) : mode( mode ), archive_path( std::string( archivePath ) )
 {
 	bit7z::Bit7zLibrary lib( L"7za.dll" );
-	bit7z::BitCompressor comp( lib, bit7z::BitFormat::SevenZip );
 
-	std::vector<bit7z::byte_t> buffer;
+	
 	
 	if ( fs::exists( archive_path ) )
 	{
+		Utilities::optional<size_t> aentires;
 		try
 		{
-			bit7z::BitArchiveInfo arc( lib, archive_path_w, bit7z::BitFormat::SevenZip );
-			auto aentires = find_item_index( arc, L"entries" );
-			bit7z::BitExtractor extractor( lib, bit7z::BitFormat::SevenZip );
-			extractor.extract( archive_path_w, buffer, *aentires );
-			auto s = Utilities::Binary_Stream::create_stream_from_data( buffer.data(), buffer.size() );
-			entries.readFromFile( s.stream );
+			archive = Bit7zArchive::create( archivePath );
 		}
 		catch ( ... )
 		{
 			throw PathNotAccessible( archivePath );
 		}
 
-		archive = ZipFile::Open( archive_path );
-		if ( !archive )
-			throw PathNotAccessible( archivePath );
-
-		auto aentries = archive->GetEntry( "entries" );
-		entries.readFromFile( *aentries->GetDecompressionStream() );
-		aentries->CloseDecompressionStream();
+		try
+		{
+			std::vector<bit7z::byte_t> buffer;
+			archive->read_entry("Entries", buffer);
+			auto s = Utilities::Binary_Stream::create_stream_from_data( buffer.data(), buffer.size() );
+			entries.readFromFile( s.stream );
+		}
+		catch ( ... )
+		{
+			throw UNKOWN_ERROR;
+		}
 	}
 	else
 	{
 		if ( mode != AccessMode::read_write )
 			throw PathNotFound( archivePath );
-
-		std::ofstream newArchive( archivePath, std::ios::binary );
-		if ( !newArchive.is_open() )
+		try
+		{
+			archive = Bit7zArchive::create( archivePath );
+			std::stringstream ss;
+			entries.writeToFile( ss );
+			ss.seekg( 0 );
+			archive->write_entry( "Entries", ss );
+		}
+		catch ( ... )
+		{
 			throw UNKOWN_ERROR;
-		newArchive.close();
-
-		archive = ZipFile::Open( archive_path );
-		if ( !archive )
-			throw UNKOWN_ERROR;
-		save_entries();
+		}
 	}
 }
 
@@ -91,7 +73,7 @@ Utilities::GUID Resources::RZIPArchive::create_from_name( std::string_view name 
 	else
 	{
 		entries.add( Utilities::GUID( name ), name );
-		archive->CreateEntry( std::string( name ) );
+		archive->create_entry( name );
 	}
 	return Utilities::GUID( name );
 }
@@ -104,7 +86,7 @@ void Resources::RZIPArchive::create_from_ID( const Utilities::GUID ID )
 	else
 	{
 		entries.add( ID, ID.to_string() );
-		archive->CreateEntry( ID.to_string() );
+		archive->create_entry( ID.to_string() );
 	}
 }
 
@@ -116,7 +98,7 @@ void Resources::RZIPArchive::create( const Utilities::GUID ID, std::string_view 
 	else
 	{
 		entries.add( ID, name );
-		archive->CreateEntry( std::string( name ) );
+		archive->create_entry( name );
 	}
 }
 
@@ -125,16 +107,9 @@ void Resources::RZIPArchive::save( const To_Save& to_save, Utilities::Memory::Ch
 	PROFILE;
 	if ( auto find = entries.find( to_save.first ); find.has_value() )
 	{
-		ZipArchiveEntry::Ptr entry;
-		if ( entry = archive->GetEntry( entries.peek<Entries::Name>( *find ) ); !entry )
-			entry = archive->CreateEntry( entries.peek<Entries::Name>( *find ) );
-		else if ( entry->IsRawStreamOpened() )
-			entry->CloseRawStream();
-		std::unique_ptr<imemstream> contentStream;
-		allocator.peek_data( to_save.second, [&, entry]( const Utilities::Memory::ConstMemoryBlock data )
+		allocator.peek_data( to_save.second, [&, this]( const Utilities::Memory::ConstMemoryBlock data )
 		{
-			contentStream = std::make_unique<imemstream>( (char*)data.get_char(), data.used_size );
-			entry->SetCompressionStream( *contentStream.get(), StoreMethod::Create() );
+			archive->write_entry( entries.peek<Entries::Name>( *find ), data );
 		} );
 
 		save_entries();
@@ -149,20 +124,10 @@ void Resources::RZIPArchive::save_multiple( const To_Save_Vector& to_save_vector
 	{
 		if ( auto find = entries.find( to_save.first ); find.has_value() )
 		{
-			ZipArchiveEntry::Ptr entry;
-			if ( entry = archive->GetEntry( entries.peek<Entries::Name>( *find ) ); !entry )
-				entry = archive->CreateEntry( entries.peek<Entries::Name>( *find ) );
-			else if ( entry->IsRawStreamOpened() )
-				entry->CloseRawStream();
-
-			allocator.peek_data( to_save.second, [&, entry]( const Utilities::Memory::ConstMemoryBlock data )
+			allocator.peek_data( to_save.second, [&, this]( const Utilities::Memory::ConstMemoryBlock data )
 			{
-				streams.push_back( std::make_unique<imemstream>( (char*)data.get_char(), data.used_size ) );
-				entry->SetCompressionStream( *streams.back().get(), StoreMethod::Create() );
+				archive->write_entry( entries.peek<Entries::Name>( *find ), data );
 			} );
-
-
-
 		}
 	}
 
@@ -179,8 +144,8 @@ const size_t Resources::RZIPArchive::get_size( const Utilities::GUID ID ) const
 	PROFILE;
 	if ( auto find = entries.find( ID ); !find.has_value() )
 		throw ResourceNotFound( ID );
-	else if ( auto entry = archive->GetEntry( entries.peek<Entries::Name>( *find ) ); entry )
-		return entry->GetSize();
+	else if ( auto entry = archive->get_entry_info( entries.peek<Entries::Name>( *find ) ); entry.has_value() )
+		return entry->size();
 	else
 		return 0;
 }
@@ -214,8 +179,7 @@ void Resources::RZIPArchive::set_name( const Utilities::GUID ID, std::string_vie
 
 	else
 	{
-		auto entry = archive->GetEntry( entries.peek<Entries::Name>( *find ) );
-		entry->SetName( std::string( name ) );
+		// Set name of file as well
 		memcpy( &entries.get<Entries::Name>( *find ), name.data(), name.size() + 1 );
 	}
 	save_entries();
@@ -246,12 +210,12 @@ const Utilities::Memory::Handle Resources::RZIPArchive::read( const Utilities::G
 
 void Resources::RZIPArchive::save_entries() noexcept
 {
-	if ( auto aentries = archive->GetEntry( "entries" ); !aentries )
-		aentries = archive->CreateEntry( "entries" );
+	if ( auto aentries = archive->GetEntry( "Entries" ); !aentries )
+		aentries = archive->CreateEntry( "Entries" );
 	else if ( aentries->IsRawStreamOpened() )
 		aentries->CloseRawStream();
 
-	auto aentries = archive->GetEntry( "entries" );
+	auto aentries = archive->GetEntry( "Entries" );
 	std::stringstream ss;
 	entries.writeToFile( ss );
 	aentries->SetCompressionStream( ss );

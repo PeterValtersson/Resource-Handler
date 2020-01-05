@@ -152,10 +152,12 @@
   <ItemGroup>
     <ClInclude Include="..\include\IResourceArchive.h" />
     <ClInclude Include="BinaryArchive.h" />
+    <ClInclude Include="Bit7zArchive.h" />
     <ClInclude Include="RZIPArchive.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BinaryArchive.cpp" />
+    <ClCompile Include="Bit7zArchive.cpp" />
     <ClCompile Include="IResourceArchive.cpp" />
     <ClCompile Include="RZIPArchive.cpp" />
   </ItemGroup>
