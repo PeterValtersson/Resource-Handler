@@ -59,6 +59,7 @@ namespace Resources
 		void writeHeader();
 		void writeTail();
 
+		AccessMode mode;
 		std::fstream stream;
 		std::string archivePath;
 

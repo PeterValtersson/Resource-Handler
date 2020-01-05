@@ -50,14 +50,6 @@ public:
 		{
 			auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
 			Assert::IsFalse( a->exists( "test" ) );
-			Assert::ExpectException<Resources::ResourceNotFound>( [&]
-			{
-				a->set_name( "test", "test" );
-			} );
-			Assert::ExpectException<Resources::ResourceNotFound>( [&]
-			{
-				a->set_type( "test", "test_type" );
-			} );
 			a->create_from_name( "test" );
 			Assert::IsTrue( a->exists( "test" ) );
 			a->set_name( "test", "test" );

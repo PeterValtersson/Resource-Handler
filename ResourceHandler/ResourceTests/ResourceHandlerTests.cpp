@@ -21,7 +21,7 @@ namespace ResourceTests
 		{
 			if ( fs::exists( "test.dat" ) )
 				fs::remove( "test.dat" );
-			Resources::IResourceHandler::create( Resources::AccessMode::read_write, Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write ) );
+			Resources::IResourceHandler::create( Resources::AccessMode::read_write, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write ) );
 			Assert::ExpectException<Resources::NoResourceHandler>( []()
 			{
 				Resources::IResourceHandler::get();
@@ -31,7 +31,7 @@ namespace ResourceTests
 		{
 			if ( fs::exists( "test.dat" ) )
 				fs::remove( "test.dat" );
-			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_write, Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write ) );
+			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_write, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write ) );
 			Resources::IResourceHandler::set( rh );
 			Resources::IResourceHandler::get();
 
@@ -42,7 +42,7 @@ namespace ResourceTests
 				fs::remove( "test2.dat" );
 			{
 				Utilities::Memory::ChunkyAllocator all( 64 );
-				auto a = Resources::IResourceArchive::create_zip_archive( "test2.dat", Resources::AccessMode::read_write );
+				auto a = Resources::IResourceArchive::create_binary_archive( "test2.dat", Resources::AccessMode::read_write );
 				a->create_from_name( "test" );
 				a->set_name( "test", "test" );
 				a->set_type( "test", "test_type" );
@@ -73,7 +73,7 @@ namespace ResourceTests
 			}
 
 			{
-				auto a = Resources::IResourceArchive::create_zip_archive( "test2.dat", Resources::AccessMode::read );
+				auto a = Resources::IResourceArchive::create_binary_archive( "test2.dat", Resources::AccessMode::read );
 				auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read, a );
 				Resources::IResourceHandler::set( rh );
 
@@ -109,16 +109,19 @@ namespace ResourceTests
 		{
 			if ( fs::exists( "test.dat" ) )
 				fs::remove( "test.dat" );
-			auto a = Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write );
+			auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
 			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_write, a );
 			Resources::IResourceHandler::set( rh );
 
 			Resources::Resource r( "test" );
 			Assert::IsFalse( a->exists( "test" ) );
 
-			r.set_name( "resource" );
+			r.set_name( "test" );
+		
 
 			Assert::IsTrue( a->exists( "test" ) );
+			Assert::AreEqual( "test", a->get_name( "test" ).c_str() );
+			r.set_name( "resource" );
 			Assert::AreEqual( "resource", a->get_name( "test" ).c_str() );
 			Assert::AreEqual( "resource", r.get_name().c_str() );
 
@@ -178,7 +181,7 @@ namespace ResourceTests
 		{
 			if ( fs::exists( "test.dat" ) )
 				fs::remove( "test.dat" );
-			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_write, Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write ) );
+			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_write, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write ) );
 			Resources::IResourceHandler::set( rh );
 
 			Resources::Resource r( "test" );

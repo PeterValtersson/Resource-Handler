@@ -4,7 +4,7 @@
 #include <Utilities/FStreamHelpers.h>
 
 namespace fs = std::filesystem;
-Resources::BinaryArchive::BinaryArchive( std::string_view archivePath, AccessMode mode ) : archivePath( archivePath )
+Resources::BinaryArchive::BinaryArchive( std::string_view archivePath, AccessMode mode ) : archivePath( archivePath ), mode( mode )
 {
 	PROFILE;
 	auto m = std::ios::binary | std::ios::in | std::ios::ate;
@@ -65,15 +65,21 @@ const size_t Resources::BinaryArchive::num_resources() const noexcept
 Utilities::GUID Resources::BinaryArchive::create_from_name( std::string_view name )
 {
 	PROFILE;
-	entries.add( Utilities::GUID(name), name, 0, 0, 0 );
+	entries.add( Utilities::GUID( name ), name, 0, 0, 0 );
 	return Utilities::GUID( name );
 }
 
 void Resources::BinaryArchive::create_from_ID( const Utilities::GUID ID )
-{}
+{
+	PROFILE;
+	entries.add( ID,  ID.to_string(), 0, 0, 0 );
+}
 
 void Resources::BinaryArchive::create( const Utilities::GUID ID, std::string_view name )
-{}
+{
+	PROFILE;
+	entries.add( ID, name, 0, 0, 0 );
+}
 
 void Resources::BinaryArchive::save_resource_info()
 {
@@ -209,7 +215,12 @@ void Resources::BinaryArchive::set_name( const Utilities::GUID ID, std::string_v
 {
 	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )
-		throw ResourceNotFound( ID );
+		if ( mode == AccessMode::read )
+			throw ResourceNotFound( ID );
+		else
+		{
+			create( ID, name );
+		}
 	else
 		memcpy( &entries.get<Entries::Name>( *entry ), name.data(), name.size() + 1 );
 }
