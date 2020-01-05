@@ -4,3 +4,6 @@
 [submodule "ziplib"]
 	path = ziplib
 	url = https://bitbucket.org/wbenny/ziplib
+[submodule "bit7z"]
+	path = bit7z
+	url = https://github.com/rikyoz/bit7z
