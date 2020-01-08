@@ -1,3 +1,6 @@
 [submodule "master"]
 	path = master
 	url = https://bitbucket.org/wbenny/ziplib/src/master/
+[submodule "bit7z"]
+	path = bit7z
+	url = https://github.com/PeterValtersson/bit7z
