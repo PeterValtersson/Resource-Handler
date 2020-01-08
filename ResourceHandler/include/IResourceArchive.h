@@ -8,6 +8,7 @@
 #include <memory>
 #include <functional>
 #include <atomic>
+#include <string_view>
 
 namespace Resources
 {

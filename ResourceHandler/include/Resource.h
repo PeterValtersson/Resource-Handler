@@ -13,6 +13,10 @@ namespace Resources
 		{
 			IResourceHandler::get()->register_resource( ID );
 		}
+		Resource( Utilities::GUID ID, Utilities::GUID type ) : ID( ID ), checkedIn( false )
+		{
+			IResourceHandler::get()->register_resource( ID );
+		}
 		Resource( const Resource& other ) = delete;
 		Resource( Resource&& other ) = delete;
 		Resource& operator=( const Resource& other ) = delete;
