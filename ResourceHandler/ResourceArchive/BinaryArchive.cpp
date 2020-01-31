@@ -4,7 +4,7 @@
 #include <Utilities/FStreamHelpers.h>
 
 namespace fs = std::filesystem;
-Resources::BinaryArchive::BinaryArchive( std::string_view archivePath, AccessMode mode ) : archivePath( archivePath ), mode( mode )
+ResourceHandler::BinaryArchive::BinaryArchive( std::string_view archivePath, AccessMode mode ) : archivePath( archivePath ), mode( mode )
 {
 	PROFILE;
 	auto m = std::ios::binary | std::ios::in | std::ios::ate;
@@ -52,43 +52,43 @@ Resources::BinaryArchive::BinaryArchive( std::string_view archivePath, AccessMod
 	readTail();
 }
 
-Resources::BinaryArchive::~BinaryArchive()
+ResourceHandler::BinaryArchive::~BinaryArchive()
 {
 	stream.close();
 }
 
-const size_t Resources::BinaryArchive::num_resources() const noexcept
+const size_t ResourceHandler::BinaryArchive::num_resources() const noexcept
 {
 	return entries.size();
 }
 
-Utilities::GUID Resources::BinaryArchive::create_from_name( std::string_view name )
+Utilities::GUID ResourceHandler::BinaryArchive::create_from_name( std::string_view name )
 {
 	PROFILE;
 	entries.add( Utilities::GUID( name ), name, 0, 0, 0 );
 	return Utilities::GUID( name );
 }
 
-void Resources::BinaryArchive::create_from_ID( const Utilities::GUID ID )
+void ResourceHandler::BinaryArchive::create_from_ID( const Utilities::GUID ID )
 {
 	PROFILE;
 	entries.add( ID,  ID.to_string(), 0, 0, 0 );
 }
 
-void Resources::BinaryArchive::create( const Utilities::GUID ID, std::string_view name )
+void ResourceHandler::BinaryArchive::create( const Utilities::GUID ID, std::string_view name )
 {
 	PROFILE;
 	entries.add( ID, name, 0, 0, 0 );
 }
 
-void Resources::BinaryArchive::save_resource_info()
+void ResourceHandler::BinaryArchive::save_resource_info()
 {
 	PROFILE;
 	writeHeader();
 	writeTail();
 }
 
-void Resources::BinaryArchive::save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
+void ResourceHandler::BinaryArchive::save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
 {
 	PROFILE;
 	try
@@ -102,7 +102,7 @@ void Resources::BinaryArchive::save( const To_Save& to_save, Utilities::Memory::
 	save_resource_info();
 }
 
-void Resources::BinaryArchive::save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
+void ResourceHandler::BinaryArchive::save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
 {
 	PROFILE;
 	for ( const auto& to_save : to_save_vector )
@@ -119,7 +119,7 @@ void Resources::BinaryArchive::save_multiple( const To_Save_Vector& to_save_vect
 	save_resource_info();
 }
 
-void Resources::BinaryArchive::_save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
+void ResourceHandler::BinaryArchive::_save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
 {
 	PROFILE;
 	if ( const auto entry = entries.find( to_save.first ); !entry.has_value() )
@@ -147,14 +147,14 @@ void Resources::BinaryArchive::_save_resource_info_data( const To_Save& to_save,
 	}
 }
 
-void Resources::BinaryArchive::readHeader()
+void ResourceHandler::BinaryArchive::readHeader()
 {
 	PROFILE;
 	stream.seekg( 0 );
 	Utilities::Binary_Stream::read( stream, header );
 }
 
-void Resources::BinaryArchive::readTail()
+void ResourceHandler::BinaryArchive::readTail()
 {
 	PROFILE;
 	stream.seekg( header.tailStart );
@@ -164,27 +164,27 @@ void Resources::BinaryArchive::readTail()
 }
 
 
-void Resources::BinaryArchive::writeHeader()
+void ResourceHandler::BinaryArchive::writeHeader()
 {
 	PROFILE;
 	stream.seekp( 0 );
 	Utilities::Binary_Stream::write( stream, header );
 }
 
-void Resources::BinaryArchive::writeTail()
+void ResourceHandler::BinaryArchive::writeTail()
 {
 	PROFILE;
 	stream.seekp( header.tailStart );
 	entries.writeToFile( stream );
 }
 
-const bool Resources::BinaryArchive::exists( const Utilities::GUID ID ) const noexcept
+const bool ResourceHandler::BinaryArchive::exists( const Utilities::GUID ID ) const noexcept
 {
 	PROFILE;
 	return entries.find( ID ).has_value();
 }
 
-const size_t Resources::BinaryArchive::get_size( const Utilities::GUID ID ) const
+const size_t ResourceHandler::BinaryArchive::get_size( const Utilities::GUID ID ) const
 {
 	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )
@@ -193,7 +193,7 @@ const size_t Resources::BinaryArchive::get_size( const Utilities::GUID ID ) cons
 		return entries.peek<Entries::DataSize>( *entry );
 }
 
-const std::string Resources::BinaryArchive::get_name( const Utilities::GUID ID ) const
+const std::string ResourceHandler::BinaryArchive::get_name( const Utilities::GUID ID ) const
 {
 	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )
@@ -202,7 +202,7 @@ const std::string Resources::BinaryArchive::get_name( const Utilities::GUID ID )
 		return entries.peek<Entries::Name>( *entry );
 }
 
-const Utilities::GUID Resources::BinaryArchive::get_type( const Utilities::GUID ID ) const
+const Utilities::GUID ResourceHandler::BinaryArchive::get_type( const Utilities::GUID ID ) const
 {
 	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )
@@ -211,7 +211,7 @@ const Utilities::GUID Resources::BinaryArchive::get_type( const Utilities::GUID 
 		return entries.peek<Entries::Type>( *entry );
 }
 
-void Resources::BinaryArchive::set_name( const Utilities::GUID ID, std::string_view name )
+void ResourceHandler::BinaryArchive::set_name( const Utilities::GUID ID, std::string_view name )
 {
 	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )
@@ -225,7 +225,7 @@ void Resources::BinaryArchive::set_name( const Utilities::GUID ID, std::string_v
 		memcpy( &entries.get<Entries::Name>( *entry ), name.data(), name.size() + 1 );
 }
 
-void Resources::BinaryArchive::set_type( const Utilities::GUID ID, const Utilities::GUID type )
+void ResourceHandler::BinaryArchive::set_type( const Utilities::GUID ID, const Utilities::GUID type )
 {
 	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )
@@ -234,7 +234,7 @@ void Resources::BinaryArchive::set_type( const Utilities::GUID ID, const Utiliti
 		entries.set<Entries::Type>( *entry, type );
 }
 
-const Utilities::Memory::Handle Resources::BinaryArchive::read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator )
+const Utilities::Memory::Handle ResourceHandler::BinaryArchive::read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator )
 {
 	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )

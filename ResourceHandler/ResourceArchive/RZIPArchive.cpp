@@ -6,7 +6,7 @@
 //
 //
 //namespace fs = std::filesystem;
-//Resources::RZIPArchive::RZIPArchive( std::string_view archivePath, AccessMode mode ) : mode( mode ), archive_path( std::string( archivePath ) )
+//ResourceHandler::RZIPArchive::RZIPArchive( std::string_view archivePath, AccessMode mode ) : mode( mode ), archive_path( std::string( archivePath ) )
 //{
 //	bit7z::Bit7zLibrary lib( L"7za.dll" );
 //
@@ -55,17 +55,17 @@
 //	}
 //}
 //
-//Resources::RZIPArchive::~RZIPArchive()
+//ResourceHandler::RZIPArchive::~RZIPArchive()
 //{
 //
 //}
 //
-//const size_t Resources::RZIPArchive::num_resources() const noexcept
+//const size_t ResourceHandler::RZIPArchive::num_resources() const noexcept
 //{
 //	return entries.size();
 //}
 //
-//Utilities::GUID Resources::RZIPArchive::create_from_name( std::string_view name )
+//Utilities::GUID ResourceHandler::RZIPArchive::create_from_name( std::string_view name )
 //{
 //	PROFILE;
 //	if ( auto find = entries.find( Utilities::GUID( name ) ); find.has_value() )
@@ -78,7 +78,7 @@
 //	return Utilities::GUID( name );
 //}
 //
-//void Resources::RZIPArchive::create_from_ID( const Utilities::GUID ID )
+//void ResourceHandler::RZIPArchive::create_from_ID( const Utilities::GUID ID )
 //{
 //	PROFILE;
 //	if ( auto find = entries.find( ID ); find.has_value() )
@@ -90,7 +90,7 @@
 //	}
 //}
 //
-//void Resources::RZIPArchive::create( const Utilities::GUID ID, std::string_view name )
+//void ResourceHandler::RZIPArchive::create( const Utilities::GUID ID, std::string_view name )
 //{
 //	PROFILE;
 //	if ( auto find = entries.find( ID ); find.has_value() )
@@ -102,7 +102,7 @@
 //	}
 //}
 //
-//void Resources::RZIPArchive::save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
+//void ResourceHandler::RZIPArchive::save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
 //{
 //	PROFILE;
 //	if ( auto find = entries.find( to_save.first ); find.has_value() )
@@ -116,7 +116,7 @@
 //	}
 //}
 //
-//void Resources::RZIPArchive::save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
+//void ResourceHandler::RZIPArchive::save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
 //{
 //	PROFILE;
 //	std::vector<std::unique_ptr<imemstream>> streams;
@@ -134,12 +134,12 @@
 //	save_entries();
 //}
 //
-//const bool Resources::RZIPArchive::exists( const Utilities::GUID ID ) const noexcept
+//const bool ResourceHandler::RZIPArchive::exists( const Utilities::GUID ID ) const noexcept
 //{
 //	return entries.find( ID ).has_value();
 //}
 //
-//const size_t Resources::RZIPArchive::get_size( const Utilities::GUID ID ) const
+//const size_t ResourceHandler::RZIPArchive::get_size( const Utilities::GUID ID ) const
 //{
 //	PROFILE;
 //	if ( auto find = entries.find( ID ); !find.has_value() )
@@ -150,7 +150,7 @@
 //		return 0;
 //}
 //
-//const std::string Resources::RZIPArchive::get_name( const Utilities::GUID ID ) const
+//const std::string ResourceHandler::RZIPArchive::get_name( const Utilities::GUID ID ) const
 //{
 //	PROFILE;
 //	if ( auto find = entries.find( ID ); !find.has_value() )
@@ -159,12 +159,12 @@
 //		return entries.peek<Entries::Name>( *find );
 //}
 //
-//const Utilities::GUID Resources::RZIPArchive::get_type( const Utilities::GUID ID ) const
+//const Utilities::GUID ResourceHandler::RZIPArchive::get_type( const Utilities::GUID ID ) const
 //{
 //	return Utilities::GUID();
 //}
 //
-//void Resources::RZIPArchive::set_name( const Utilities::GUID ID, std::string_view name )
+//void ResourceHandler::RZIPArchive::set_name( const Utilities::GUID ID, std::string_view name )
 //{
 //	PROFILE;
 //	if ( auto find = entries.find( ID ); !find.has_value() )
@@ -185,10 +185,10 @@
 //	save_entries();
 //}
 //
-//void Resources::RZIPArchive::set_type( const Utilities::GUID ID, const Utilities::GUID type )
+//void ResourceHandler::RZIPArchive::set_type( const Utilities::GUID ID, const Utilities::GUID type )
 //{}
 //
-//const Utilities::Memory::Handle Resources::RZIPArchive::read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator )
+//const Utilities::Memory::Handle ResourceHandler::RZIPArchive::read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator )
 //{
 //	PROFILE;
 //	if ( auto find = entries.find( ID ); !find.has_value() )
@@ -206,7 +206,7 @@
 //	return 0;
 //}
 //
-//void Resources::RZIPArchive::save_entries() noexcept
+//void ResourceHandler::RZIPArchive::save_entries() noexcept
 //{
 //	/*if ( auto aentries = archive->GetEntry( "Entries" ); !aentries )
 //		aentries = archive->CreateEntry( "Entries" );

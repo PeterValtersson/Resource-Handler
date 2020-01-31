@@ -8,7 +8,7 @@
 #include <future>
 #include <Utilities/Concurrent.h>
 
-namespace Resources
+namespace ResourceHandler
 {
 	class ResourceHandler_Read : public IResourceHandler {
 	public:

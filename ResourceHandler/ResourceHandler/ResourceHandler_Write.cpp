@@ -2,17 +2,17 @@
 #include <Utilities/Profiler/Profiler.h>
 
 
-Resources::ResourceHandler_Write::ResourceHandler_Write( std::shared_ptr<IResourceArchive> archive )
+ResourceHandler::ResourceHandler_Write::ResourceHandler_Write( std::shared_ptr<IResourceArchive> archive )
 	: archive( archive ), allocator( 1_gb / Utilities::Memory::ChunkyAllocator::blocksize() )
 {
 
 }
 
-Resources::ResourceHandler_Write::~ResourceHandler_Write()
+ResourceHandler::ResourceHandler_Write::~ResourceHandler_Write()
 {
 
 }
-void Resources::ResourceHandler_Write::save_all()
+void ResourceHandler::ResourceHandler_Write::save_all()
 {
 	PROFILE;
 	To_Save_Vector to_save;
@@ -30,14 +30,14 @@ void Resources::ResourceHandler_Write::save_all()
 	if ( to_save.size() > 0 )
 		archive->save_multiple( to_save, allocator );
 }
-void Resources::ResourceHandler_Write::register_resource( const Utilities::GUID ID )noexcept
+void ResourceHandler::ResourceHandler_Write::register_resource( const Utilities::GUID ID )noexcept
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
 		resources.add( ID, Status::None, 0, 0, 0, false );
 }
 
-void Resources::ResourceHandler_Write::inc_refCount( const Utilities::GUID ID ) noexcept
+void ResourceHandler::ResourceHandler_Write::inc_refCount( const Utilities::GUID ID ) noexcept
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
@@ -48,7 +48,7 @@ void Resources::ResourceHandler_Write::inc_refCount( const Utilities::GUID ID ) 
 	}
 }
 
-void Resources::ResourceHandler_Write::dec_refCount( const Utilities::GUID ID ) noexcept
+void ResourceHandler::ResourceHandler_Write::dec_refCount( const Utilities::GUID ID ) noexcept
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
@@ -59,7 +59,7 @@ void Resources::ResourceHandler_Write::dec_refCount( const Utilities::GUID ID ) 
 	}
 }
 
-Resources::RefCount Resources::ResourceHandler_Write::get_refCount( const Utilities::GUID ID ) const noexcept
+ResourceHandler::RefCount ResourceHandler::ResourceHandler_Write::get_refCount( const Utilities::GUID ID ) const noexcept
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
@@ -70,13 +70,13 @@ Resources::RefCount Resources::ResourceHandler_Write::get_refCount( const Utilit
 	}
 }
 
-std::string Resources::ResourceHandler_Write::get_name( const Utilities::GUID ID ) const
+std::string ResourceHandler::ResourceHandler_Write::get_name( const Utilities::GUID ID ) const
 {
 	PROFILE;
 	return archive->get_name( ID );
 }
 
-void Resources::ResourceHandler_Write::use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) noexcept
+void ResourceHandler::ResourceHandler_Write::use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) noexcept
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
@@ -101,7 +101,7 @@ void Resources::ResourceHandler_Write::use_data( const Utilities::GUID ID, const
 	}
 }
 
-void Resources::ResourceHandler_Write::modify_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback )
+void ResourceHandler::ResourceHandler_Write::modify_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback )
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
@@ -125,7 +125,7 @@ void Resources::ResourceHandler_Write::modify_data( const Utilities::GUID ID, co
 	}
 }
 
-void Resources::ResourceHandler_Write::write_data( Utilities::GUID ID, const void* const data, const size_t size )
+void ResourceHandler::ResourceHandler_Write::write_data( Utilities::GUID ID, const void* const data, const size_t size )
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
@@ -149,13 +149,13 @@ void Resources::ResourceHandler_Write::write_data( Utilities::GUID ID, const voi
 	}
 }
 
-void Resources::ResourceHandler_Write::set_type( Utilities::GUID ID, Utilities::GUID type )
+void ResourceHandler::ResourceHandler_Write::set_type( Utilities::GUID ID, Utilities::GUID type )
 {
 	PROFILE;
 	archive->set_type( ID, type );
 }
 
-void Resources::ResourceHandler_Write::set_name( Utilities::GUID ID, std::string_view name )
+void ResourceHandler::ResourceHandler_Write::set_name( Utilities::GUID ID, std::string_view name )
 {
 	PROFILE;
 	archive->set_name( ID, name );

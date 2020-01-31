@@ -21,19 +21,19 @@ namespace ResourceTests
 		{
 			if ( fs::exists( "test.dat" ) )
 				fs::remove( "test.dat" );
-			Resources::IResourceHandler::create( Resources::AccessMode::read_write, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write ) );
-			Assert::ExpectException<Resources::NoResourceHandler>( []()
+			ResourceHandler::IResourceHandler::create( ResourceHandler::AccessMode::read_write, ResourceHandler::IResourceArchive::create_binary_archive( "test.dat", ResourceHandler::AccessMode::read_write ) );
+			Assert::ExpectException<ResourceHandler::NoResourceHandler>( []()
 			{
-				Resources::IResourceHandler::get();
+				ResourceHandler::IResourceHandler::get();
 			} );
 		}
 		TEST_METHOD( create )
 		{
 			if ( fs::exists( "test.dat" ) )
 				fs::remove( "test.dat" );
-			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_write, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write ) );
-			Resources::IResourceHandler::set( rh );
-			Resources::IResourceHandler::get();
+			auto rh = ResourceHandler::IResourceHandler::create( ResourceHandler::AccessMode::read_write, ResourceHandler::IResourceArchive::create_binary_archive( "test.dat", ResourceHandler::AccessMode::read_write ) );
+			ResourceHandler::IResourceHandler::set( rh );
+			ResourceHandler::IResourceHandler::get();
 
 		}
 		TEST_METHOD( Read_Resources )
@@ -42,7 +42,7 @@ namespace ResourceTests
 				fs::remove( "test2.dat" );
 			{
 				Utilities::Memory::ChunkyAllocator all( 64 );
-				auto a = Resources::IResourceArchive::create_binary_archive( "test2.dat", Resources::AccessMode::read_write );
+				auto a = ResourceHandler::IResourceArchive::create_binary_archive( "test2.dat", ResourceHandler::AccessMode::read_write );
 				a->create_from_name( "test" );
 				a->set_name( "test", "test" );
 				a->set_type( "test", "test_type" );
@@ -68,28 +68,28 @@ namespace ResourceTests
 					mem = MoreData{ 123, 1.2f, 134 };
 				} );
 
-				Resources::To_Save_Vector to_save = { { "test", handle }, { "test2", handle2 }, { "test3", handle3 } };
+				ResourceHandler::To_Save_Vector to_save = { { "test", handle }, { "test2", handle2 }, { "test3", handle3 } };
 				a->save_multiple( to_save, all );
 			}
 
 			{
-				auto a = Resources::IResourceArchive::create_binary_archive( "test2.dat", Resources::AccessMode::read );
-				auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read, a );
-				Resources::IResourceHandler::set( rh );
+				auto a = ResourceHandler::IResourceArchive::create_binary_archive( "test2.dat", ResourceHandler::AccessMode::read );
+				auto rh = ResourceHandler::IResourceHandler::create( ResourceHandler::AccessMode::read, a );
+				ResourceHandler::IResourceHandler::set( rh );
 
-				Resources::Resource r( "test" );
+				ResourceHandler::Resource r( "test" );
 				r.use_data( []( const Utilities::Memory::ConstMemoryBlock mem )
 				{
 					Assert::AreEqual( 1337, mem.peek<int>() );
 				} );
 
-				Resources::Resource r2( "test2" );
+				ResourceHandler::Resource r2( "test2" );
 				r2.use_data( []( const Utilities::Memory::ConstMemoryBlock mem )
 				{
 					Assert::AreEqual( 1338, mem.peek<int>() );
 				} );
 
-				Resources::Resource r3( "test3" );
+				ResourceHandler::Resource r3( "test3" );
 				r3.use_data( []( const Utilities::Memory::ConstMemoryBlock mem )
 				{
 					auto a = mem.peek<MoreData>();
@@ -109,11 +109,11 @@ namespace ResourceTests
 		{
 			if ( fs::exists( "test.dat" ) )
 				fs::remove( "test.dat" );
-			auto a = Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write );
-			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_write, a );
-			Resources::IResourceHandler::set( rh );
+			auto a = ResourceHandler::IResourceArchive::create_binary_archive( "test.dat", ResourceHandler::AccessMode::read_write );
+			auto rh = ResourceHandler::IResourceHandler::create( ResourceHandler::AccessMode::read_write, a );
+			ResourceHandler::IResourceHandler::set( rh );
 
-			Resources::Resource r( "test" );
+			ResourceHandler::Resource r( "test" );
 			Assert::IsFalse( a->exists( "test" ) );
 
 			r.set_name( "test" );
@@ -181,10 +181,10 @@ namespace ResourceTests
 		{
 			if ( fs::exists( "test.dat" ) )
 				fs::remove( "test.dat" );
-			auto rh = Resources::IResourceHandler::create( Resources::AccessMode::read_write, Resources::IResourceArchive::create_binary_archive( "test.dat", Resources::AccessMode::read_write ) );
-			Resources::IResourceHandler::set( rh );
+			auto rh = ResourceHandler::IResourceHandler::create( ResourceHandler::AccessMode::read_write, ResourceHandler::IResourceArchive::create_binary_archive( "test.dat", ResourceHandler::AccessMode::read_write ) );
+			ResourceHandler::IResourceHandler::set( rh );
 
-			Resources::Resource r( "test" );
+			ResourceHandler::Resource r( "test" );
 
 			r.modify_data( []( Utilities::Memory::MemoryBlock data )
 			{

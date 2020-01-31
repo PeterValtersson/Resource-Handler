@@ -44,7 +44,7 @@ Utilities::optional<bit7z::BitArchiveItem> Bit7zArchive::get_entry_info( std::st
 void Bit7zArchive::read_entry( std::string_view name, Buffer& out )
 {
 	if ( auto find = find_item_index( entries, Utilities::String::utf8_2_utf16( name ) ); !find.has_value() )
-		throw Resources::ResourceNotFound( Utilities::GUID( name ) );
+		throw ResourceHandler::ResourceNotFound( Utilities::GUID( name ) );
 	else
 	{
 		bit7z::BitExtractor extractor( lib, format );

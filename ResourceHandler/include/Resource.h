@@ -5,7 +5,7 @@
 #include <functional>
 #include <IResourceHandler.h>
 
-namespace Resources
+namespace ResourceHandler
 {
 	class Resource {
 	public:

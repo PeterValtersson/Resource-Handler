@@ -5,7 +5,7 @@
 //#include <Utilities/Memory/Sofa.h>
 //#include "Bit7zArchive.h"
 //
-//namespace Resources
+//namespace ResourceHandler
 //{
 //	class RZIPArchive : public IResourceArchive {
 //	public:

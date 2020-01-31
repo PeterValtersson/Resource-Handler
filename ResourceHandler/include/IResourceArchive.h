@@ -10,7 +10,7 @@
 #include <atomic>
 #include <string_view>
 
-namespace Resources
+namespace ResourceHandler
 {
 	struct PathNotFound : public Utilities::Exception{
 		PathNotFound( std::string_view path ) : Utilities::Exception( "Path could not be found. Path: " + std::string( path ) )

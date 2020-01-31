@@ -5,7 +5,7 @@
 #include <IResourceArchive.h>
 #include <Utilities/Flags.h>
 
-namespace Resources
+namespace ResourceHandler
 {
 	enum class Status : uint32_t {
 		None = 0 << 0,
@@ -40,9 +40,9 @@ namespace Resources
 		virtual ~IResourceHandler()
 		{}
 
-		DECLSPEC_RH static std::shared_ptr<Resources::IResourceHandler> get();
-		DECLSPEC_RH static void set(std::shared_ptr<Resources::IResourceHandler> rh);
-		DECLSPEC_RH static std::shared_ptr<Resources::IResourceHandler> create( AccessMode mode, std::shared_ptr<IResourceArchive> archive );
+		DECLSPEC_RH static std::shared_ptr<ResourceHandler::IResourceHandler> get();
+		DECLSPEC_RH static void set(std::shared_ptr<ResourceHandler::IResourceHandler> rh);
+		DECLSPEC_RH static std::shared_ptr<ResourceHandler::IResourceHandler> create( AccessMode mode, std::shared_ptr<IResourceArchive> archive );
 
 		virtual void save_all()
 		{
@@ -77,5 +77,5 @@ namespace Resources
 		{}
 	};
 }
-ENUM_FLAGS(Resources::Status);
+ENUM_FLAGS(ResourceHandler::Status);
 #endif

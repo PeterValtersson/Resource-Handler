@@ -4,7 +4,7 @@
 #include <IResourceHandler.h>
 #include <Utilities/Memory/Sofa.h>
 #include <Utilities/Memory/ChunkyAllocator.h>
-namespace Resources
+namespace ResourceHandler
 {
 	class ResourceHandler_Write : public IResourceHandler
 	{

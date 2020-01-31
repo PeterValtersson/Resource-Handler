@@ -12,9 +12,9 @@ namespace ResourceTests
 public:
 	TEST_METHOD( create_read_only )
 	{
-		Assert::ExpectException<Resources::PathNotFound>( [&]
+		Assert::ExpectException<ResourceHandler::PathNotFound>( [&]
 		{
-			Resources::IResourceArchive::create_zip_archive( "shouldnotexist.dat", Resources::AccessMode::read );
+			ResourceHandler::IResourceArchive::create_zip_archive( "shouldnotexist.dat", ResourceHandler::AccessMode::read );
 		} );
 
 	}
@@ -22,7 +22,7 @@ public:
 	{
 		if ( fs::exists( "test.dat" ) )
 			fs::remove( "test.dat" );
-		auto a = Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write );
+		auto a = ResourceHandler::IResourceArchive::create_zip_archive( "test.dat", ResourceHandler::AccessMode::read_write );
 		Assert::IsTrue( fs::exists( "test.dat" ), L"'test.dat' not created" );
 		Assert::AreEqual( 0ui64, a->num_resources(), L"0 != num_resources()" );
 	}
@@ -30,13 +30,13 @@ public:
 	{
 		if ( fs::exists( "test.dat" ) )
 			fs::remove( "test.dat" );
-		auto a = Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write );
-		Assert::ExpectException<Resources::ResourceNotFound>( [&]
+		auto a = ResourceHandler::IResourceArchive::create_zip_archive( "test.dat", ResourceHandler::AccessMode::read_write );
+		Assert::ExpectException<ResourceHandler::ResourceNotFound>( [&]
 		{
 			a->get_name( "test" );
 		}, L"get_name" );
 
-		Assert::ExpectException<Resources::ResourceNotFound>( [&]
+		Assert::ExpectException<ResourceHandler::ResourceNotFound>( [&]
 		{
 			a->get_size( "test" );
 		}, L"get_size" );
@@ -48,7 +48,7 @@ public:
 		if ( fs::exists( "test.dat" ) )
 			fs::remove( "test.dat" );
 		{
-			auto a = Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write );
+			auto a = ResourceHandler::IResourceArchive::create_zip_archive( "test.dat", ResourceHandler::AccessMode::read_write );
 			Assert::IsFalse( a->exists( "test" ) );
 			a->set_name( "test2", "test2" );
 			Assert::IsTrue( a->exists( "test2" ) );
@@ -71,7 +71,7 @@ public:
 		}
 
 		{
-			auto a = Resources::IResourceArchive::create_zip_archive( "test.dat", Resources::AccessMode::read_write );
+			auto a = ResourceHandler::IResourceArchive::create_zip_archive( "test.dat", ResourceHandler::AccessMode::read_write );
 			Assert::IsTrue( a->exists( "test" ) );
 			Assert::AreEqual<std::string>( "test", a->get_name( "test" ) );
 			

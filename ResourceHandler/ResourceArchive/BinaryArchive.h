@@ -6,7 +6,7 @@
 #include <map>
 #include <Utilities/Memory/ChunkyAllocator.h>
 
-namespace Resources
+namespace ResourceHandler
 {
 	class BinaryArchive : public IResourceArchive {
 	public:
