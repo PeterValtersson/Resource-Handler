@@ -7,23 +7,49 @@
 
 namespace ResourceHandler
 {
-	class Resource {
+	class Resource{
 	public:
-		Resource( Utilities::GUID ID ) : ID(ID), checkedIn(false)
+		Resource() : ID(), checkedIn( false )
+		{
+
+		}
+		Resource( Utilities::GUID ID, Flags flags = Flags::None ) : ID( ID ), checkedIn( false )
 		{
 			IResourceHandler::get()->register_resource( ID );
 		}
-		Resource( Utilities::GUID ID, Utilities::GUID type ) : ID( ID ), checkedIn( false )
+		Resource( Utilities::GUID ID, Utilities::GUID type, Flags flags = Flags::None ) : ID( ID ), checkedIn( false )
 		{
 			IResourceHandler::get()->register_resource( ID );
 		}
-		Resource( const Resource& other ) = delete;
-		Resource( Resource&& other ) = delete;
-		Resource& operator=( const Resource& other ) = delete;
-		Resource& operator=( Resource&& other ) = delete;
+		Resource( const Resource& other )noexcept : ID( other.ID ), checkedIn( false )
+		{
+			// Already registered when other was created.
+		}
+
+		Resource( Resource&& other )noexcept : ID( other.ID ), checkedIn( other.checkedIn )
+		{
+			// Already registered when other was created.
+			other.ID = Utilities::GUID();
+			other.checkedIn = false;
+		}
+		Resource& operator=( const Resource& other )noexcept
+		{
+			check_out(); // May already contain a resource
+			ID = other.ID;
+			return *this;
+		}
+		Resource& operator=( Resource&& other )noexcept
+		{
+			check_out(); // May already contain a resource
+			ID = other.ID;
+			checkedIn = other.checkedIn;
+			other.ID = Utilities::GUID();
+			other.checkedIn = false;
+			return *this;
+		}
 
 		~Resource()
-		{ 
+		{
 			check_out();
 		}
 
@@ -45,28 +71,43 @@ namespace ResourceHandler
 				IResourceHandler::get()->dec_refCount( ID );
 			checkedIn = false;
 		}
-		inline void set_name(std::string_view name)
+		inline void set_name( std::string_view name )
 		{
 			IResourceHandler::get()->set_name( ID, name );
 		}
-		inline std::string get_name( )
+		inline std::string get_name()
 		{
 			return IResourceHandler::get()->get_name( ID );
 		}
-		inline uint32_t total_refCount()const
+		inline uint32_t get_refCount()const
 		{
 			return IResourceHandler::get()->get_refCount( ID );
 		}
 
-		inline void use_data(const std::function<void(const Utilities::Memory::ConstMemoryBlock data)>& callback)
+		inline void use_data( const std::function<void( const Utilities::Memory::ConstMemoryBlock data )>& callback )const
 		{
-			check_in();
+			if ( !checkedIn )
+				IResourceHandler::get()->inc_refCount( ID );
+			checkedIn = true;
 			IResourceHandler::get()->use_data( ID, callback );
 		}
 		inline void modify_data( const std::function<void( const Utilities::Memory::MemoryBlock data )>& callback )
 		{
 			check_in();
 			IResourceHandler::get()->modify_data( ID, callback );
+		}
+		template<class T>
+		inline T get_copy()const
+		{
+			if ( !checkedIn )
+				IResourceHandler::get()->inc_refCount( ID );
+			checkedIn = true;
+			T data_ret;
+			IResourceHandler::get()->use_data( ID, [&]( const Utilities::Memory::ConstMemoryBlock data )
+			{
+				data_ret = data.peek<T>();
+			} );
+			return data_ret;
 		}
 		inline void write( const void* const data, size_t size )
 		{
@@ -78,9 +119,14 @@ namespace ResourceHandler
 		{
 			write( &t, sizeof( T ) );
 		}
+
+		operator Utilities::GUID()const
+		{
+			return ID;
+		}
 	protected:
 		Utilities::GUID ID;
-		bool checkedIn;
+		mutable bool checkedIn;
 	};
 	/*
 	template<class T>
@@ -88,7 +134,7 @@ namespace ResourceHandler
 	public:
 		Resource( Utilities::GUID ID ) : Resource_Base( ID ) { }
 		inline const T* operator->()
-		{	
+		{
 			loadData();
 			return (T*)memory.data;
 		}

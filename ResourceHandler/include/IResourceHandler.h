@@ -7,6 +7,13 @@
 
 namespace ResourceHandler
 {
+	enum class Flags{
+		None,
+		Persistent
+	};
+
+	ENUM_FLAGS( ResourceHandler::Flags );
+
 	enum class Status : uint32_t {
 		None = 0 << 0,
 		Not_Found = 1 << 1,
