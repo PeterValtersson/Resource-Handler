@@ -25,6 +25,8 @@ namespace ResourceHandler
 		Parsing = 1 << 7
 	};
 
+	ENUM_FLAGS( ResourceHandler::Status );
+
 	enum class Memory_Type
 	{
 		RAM,
@@ -84,5 +86,4 @@ namespace ResourceHandler
 		{}
 	};
 }
-ENUM_FLAGS(ResourceHandler::Status);
 #endif
