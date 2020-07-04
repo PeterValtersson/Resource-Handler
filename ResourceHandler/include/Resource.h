@@ -120,6 +120,11 @@ namespace ResourceHandler
 			write( &t, sizeof( T ) );
 		}
 
+		Status get_status()const
+		{
+			return IResourceHandler::get()->get_status( ID );
+		}
+
 		operator Utilities::GUID()const
 		{
 			return ID;

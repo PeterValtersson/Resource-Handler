@@ -15,11 +15,12 @@ namespace ResourceHandler
 		virtual void save_all()override;
 	protected:
 		virtual void			register_resource( const Utilities::GUID ID )noexcept override;
+		virtual Status			get_status( const Utilities::GUID ID )noexcept  override;
 		virtual void			inc_refCount( const Utilities::GUID ID )noexcept  override;
 		virtual void			dec_refCount( const Utilities::GUID ID )noexcept  override;
 		virtual RefCount		get_refCount( const Utilities::GUID ID )const noexcept override;
 		virtual std::string		get_name( const Utilities::GUID ID )const  override;
-		virtual void			use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback )noexcept override;
+		virtual void			use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) override;
 
 		virtual void			modify_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback ) override;
 		virtual void		write_data( Utilities::GUID ID, const void* const data, const size_t size );
@@ -34,12 +35,14 @@ namespace ResourceHandler
 			RefCount,
 			bool						// HasChanged
 		> {
-			static const uint8_t ID = 0;
-			static const uint8_t Status = 1;
-			static const uint8_t Memory_Raw = 2;
-			static const uint8_t Memory_Parsed = 3;
-			static const uint8_t RefCount = 4;
-			static const uint8_t HasChanged = 5;
+			enum {
+				ID,
+				Status,
+				Memory_Raw,
+				Memory_Parsed,
+				RefCount,
+				HasChanged
+			};
 		} resources;
 
 		std::shared_ptr<IResourceArchive> archive;

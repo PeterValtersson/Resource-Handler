@@ -36,6 +36,110 @@ namespace ResourceTests
 			ResourceHandler::IResourceHandler::get();
 
 		}
+
+		TEST_METHOD( Get_RefCounta )
+		{
+			if ( fs::exists( "test2.dat" ) )
+				fs::remove( "test2.dat" );
+			{
+				Utilities::Memory::ChunkyAllocator all( 64 );
+				auto a = ResourceHandler::IResourceArchive::create_binary_archive( "test2.dat", ResourceHandler::AccessMode::read_write );
+				a->create_from_name( "test" );
+				a->set_name( "test", "test" );
+				a->set_type( "test", "test_type" );
+				auto handle = all.allocate( sizeof( int ) );
+				all.use_data( handle, []( Utilities::Memory::MemoryBlock mem )
+				{
+					mem = 1337;
+				} );
+
+				a->create_from_name( "test2" );
+				a->set_type( "test2", "test_type" );
+				auto handle2 = all.allocate( sizeof( int ) );
+				all.use_data( handle2, []( Utilities::Memory::MemoryBlock mem )
+				{
+					mem = 1338;
+				} );
+
+				a->create_from_name( "test3" );
+				a->set_type( "test2", "test_type" );
+				auto handle3 = all.allocate( sizeof( MoreData ) );
+				all.use_data( handle3, []( Utilities::Memory::MemoryBlock mem )
+				{
+					mem = MoreData{ 123, 1.2f, 134 };
+				} );
+
+				ResourceHandler::To_Save_Vector to_save = { { "test", handle }, { "test2", handle2 }, { "test3", handle3 } };
+				a->save_multiple( to_save, all );
+			}
+
+			{
+				auto a = ResourceHandler::IResourceArchive::create_binary_archive( "test2.dat", ResourceHandler::AccessMode::read );
+				auto rh = ResourceHandler::IResourceHandler::create( ResourceHandler::AccessMode::read, a );
+				ResourceHandler::IResourceHandler::set( rh );
+
+				ResourceHandler::Resource r( "test" );
+				Assert::AreEqual( 0u, r.get_refCount(), L"Refcount not 0" );
+				r.check_in();
+				Assert::AreEqual( 1u, r.get_refCount(), L"Refcount not 1" );
+				ResourceHandler::Resource r2( "test" );
+				r2.check_in();
+				Assert::AreEqual( 2u, r.get_refCount(), L"Refcount not 2" );
+
+			}
+
+		}
+
+		TEST_METHOD( Get_Status )
+		{
+			if ( fs::exists( "test2.dat" ) )
+				fs::remove( "test2.dat" );
+			{
+				Utilities::Memory::ChunkyAllocator all( 64 );
+				auto a = ResourceHandler::IResourceArchive::create_binary_archive( "test2.dat", ResourceHandler::AccessMode::read_write );
+				a->create_from_name( "test" );
+				a->set_name( "test", "test" );
+				a->set_type( "test", "test_type" );
+				auto handle = all.allocate( sizeof( int ) );
+				all.use_data( handle, []( Utilities::Memory::MemoryBlock mem )
+				{
+					mem = 1337;
+				} );
+
+				a->create_from_name( "test2" );
+				a->set_type( "test2", "test_type" );
+				auto handle2 = all.allocate( sizeof( int ) );
+				all.use_data( handle2, []( Utilities::Memory::MemoryBlock mem )
+				{
+					mem = 1338;
+				} );
+
+				a->create_from_name( "test3" );
+				a->set_type( "test2", "test_type" );
+				auto handle3 = all.allocate( sizeof( MoreData ) );
+				all.use_data( handle3, []( Utilities::Memory::MemoryBlock mem )
+				{
+					mem = MoreData{ 123, 1.2f, 134 };
+				} );
+
+				ResourceHandler::To_Save_Vector to_save = { { "test", handle }, { "test2", handle2 }, { "test3", handle3 } };
+				a->save_multiple( to_save, all );
+			}
+
+			{
+				auto a = ResourceHandler::IResourceArchive::create_binary_archive( "test2.dat", ResourceHandler::AccessMode::read );
+				auto rh = ResourceHandler::IResourceHandler::create( ResourceHandler::AccessMode::read, a );
+				ResourceHandler::IResourceHandler::set( rh );
+
+				ResourceHandler::Resource r( "test" );
+				r.get_copy<int>();
+				auto status = r.get_status();
+				Assert::IsTrue( ResourceHandler::Status::In_Memory == status );
+
+			}
+
+		}
+
 		TEST_METHOD( Read_Resources )
 		{
 			if ( fs::exists( "test2.dat" ) )

@@ -155,12 +155,15 @@
     <ClInclude Include="..\include\DLL_Export.h" />
     <ClInclude Include="..\include\IResourceHandler.h" />
     <ClInclude Include="..\include\Resource.h" />
+    <ClInclude Include="ActionRequest.h" />
     <ClInclude Include="ResourceHandler_Read.h" />
+    <ClInclude Include="ResourceHandler_Read_Imp.h" />
     <ClInclude Include="ResourceHandler_Write.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IResourceHandler.cpp" />
     <ClCompile Include="ResourceHandler_Read.cpp" />
+    <ClCompile Include="ResourceHandler_Read_Imp.cpp" />
     <ClCompile Include="ResourceHandler_Write.cpp" />
   </ItemGroup>
   <ItemGroup>

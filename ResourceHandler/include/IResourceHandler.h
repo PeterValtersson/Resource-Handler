@@ -61,11 +61,12 @@ namespace ResourceHandler
 	protected:
 		/* Only called by Resource*/
 		virtual void		register_resource(const Utilities::GUID ID )noexcept = 0;
+		virtual Status		get_status( const Utilities::GUID ID )noexcept = 0;
 		virtual void		inc_refCount( const Utilities::GUID ID )noexcept = 0;
 		virtual void		dec_refCount( const Utilities::GUID ID )noexcept = 0;
 		virtual RefCount	get_refCount( const Utilities::GUID ID )const noexcept = 0;
 		virtual std::string	get_name( const Utilities::GUID ID )const  = 0;
-		virtual void		use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) noexcept = 0;
+		virtual void		use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) = 0;
 		virtual void		modify_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::MemoryBlock )>& callback )
 		{
 			throw WriteInReadOnly();

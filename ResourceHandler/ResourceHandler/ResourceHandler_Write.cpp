@@ -37,6 +37,17 @@ void ResourceHandler::ResourceHandler_Write::register_resource( const Utilities:
 		resources.add( ID, Status::None, 0, 0, 0, false );
 }
 
+ResourceHandler::Status ResourceHandler::ResourceHandler_Write::get_status( const Utilities::GUID ID ) noexcept
+{
+	PROFILE;
+	if ( auto find = resources.find( ID ); !find.has_value() )
+		return Status::Not_Found;
+	else
+	{
+		return resources.peek<Entries::Status>( *find );
+	}
+}
+
 void ResourceHandler::ResourceHandler_Write::inc_refCount( const Utilities::GUID ID ) noexcept
 {
 	PROFILE;
@@ -76,7 +87,7 @@ std::string ResourceHandler::ResourceHandler_Write::get_name( const Utilities::G
 	return archive->get_name( ID );
 }
 
-void ResourceHandler::ResourceHandler_Write::use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) noexcept
+void ResourceHandler::ResourceHandler_Write::use_data( const Utilities::GUID ID, const std::function<void( const Utilities::Memory::ConstMemoryBlock )>& callback ) 
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
