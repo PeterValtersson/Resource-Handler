@@ -23,6 +23,7 @@ ResourceHandler::BinaryArchive::BinaryArchive( std::string_view archivePath, Acc
 		if ( !newArchive.is_open() )
 			throw UNKOWN_ERROR;
 
+
 		header.version = lastestVersion;
 		header.tailStart = sizeof( header );
 		header.unusedSpace = 0;
