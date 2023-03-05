@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Read Only">
+      <UniqueIdentifier>{e146b8c2-da21-4234-b8df-5b503dcf94fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\IResourceHandler.h">
@@ -24,31 +27,37 @@
     <ClInclude Include="..\include\DLL_Export.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceHandler_Read.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceHandler_Write.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceHandler_Read_Imp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ActionRequest.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceHandler_Read_Imp.h">
+      <Filter>Read Only</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceHandler_Read.h">
+      <Filter>Read Only</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLoaderThread.h">
+      <Filter>Read Only</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IResourceHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceHandler_Read.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceHandler_Write.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ResourceHandler_Read_Imp.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Read Only</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceHandler_Read.cpp">
+      <Filter>Read Only</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceLoaderThread.cpp">
+      <Filter>Read Only</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

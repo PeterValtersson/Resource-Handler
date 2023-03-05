@@ -19,7 +19,7 @@ ResourceHandler::BinaryArchive::BinaryArchive( std::string_view archivePath, Acc
 		else if ( mode != AccessMode::read_write )
 			throw PathNotFound( archivePath );
 
-		std::ofstream newArchive( archivePath, std::ios::binary );
+		std::ofstream newArchive(archivePath.data(), std::ios::binary);
 		if ( !newArchive.is_open() )
 			throw UNKOWN_ERROR;
 

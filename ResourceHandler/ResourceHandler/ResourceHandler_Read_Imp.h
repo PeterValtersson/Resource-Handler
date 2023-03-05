@@ -7,6 +7,8 @@
 #include <Utilities/Memory/ChunkyAllocator.h>
 #include <future>
 #include <Utilities/Concurrent.h>
+#include "ResourceLoaderThread.h"
+
 namespace ResourceHandler
 {
 	class ResourceHandler_Read_Imp {
@@ -43,35 +45,9 @@ namespace ResourceHandler
 		Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator;
 		std::vector<std::string> log;
 
-		struct Load_Parse_Info {
-			Utilities::GUID ID;
-			std::promise<Utilities::Memory::Handle> promise;
-			std::future<Utilities::Memory::Handle> future;
-			bool load;
-		};
-
-		class Loader {
-		public:
-			Loader( std::shared_ptr<IResourceArchive> archive, Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator )
-				: archive( archive ), allocator( allocator ), running( false )
-			{}
-			void start()noexcept;
-			void stop()noexcept;
-			void update(
-				std::function<void( Utilities::GUID ID, Utilities::Memory::Handle handle, Status status )> do_if_finished,
-				std::function<Utilities::optional<Utilities::GUID>()> choose_to_load )noexcept;
-
-			void run()noexcept;
-		private:
+		ResourceLoaderThread loader_thread;
 
 
-			bool running;
-			Load_Parse_Info to_load;
-			std::thread thread;
-
-			std::shared_ptr<IResourceArchive> archive;
-			Utilities::Concurrent<Utilities::Memory::ChunkyAllocator>& allocator;
-		}loader;
 		void resource_loading_finished( Utilities::GUID ID, Utilities::Memory::Handle handle, Status status ); //Messes with std::function/std::bind noexcept;
 		Utilities::optional<Utilities::GUID> choose_resource_to_load(); //Messes with std::function/std::bind noexcept;
 
