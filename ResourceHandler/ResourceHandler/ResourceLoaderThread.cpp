@@ -32,15 +32,15 @@ void ResourceHandler::ResourceLoaderThread::check_finished_loading(std::function
 		try
 		{
 			auto result = to_load.future.get();
-			do_if_finished(to_load.ID, result, Status::In_Memory);
+			do_if_finished(to_load.ID, result, Status::InMemory);
 		}
 		catch (ResourceNotFound& e)
 		{
-			do_if_finished(to_load.ID, 0, Status::Not_Found);
+			do_if_finished(to_load.ID, 0, Status::NotFound);
 		}
 		catch (Utilities::Memory::InvalidHandle& e)
 		{
-			do_if_finished(to_load.ID, 0, Status::Could_Not_Load);
+			do_if_finished(to_load.ID, 0, Status::CouldNotLoad);
 		}
 	}
 }

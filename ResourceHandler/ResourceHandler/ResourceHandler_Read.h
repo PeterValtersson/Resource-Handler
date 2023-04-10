@@ -14,6 +14,7 @@ namespace ResourceHandler
 		~ResourceHandler_Read();
 
 
+		virtual void add_parser(const Utilities::GUID type, const std::string& library_path)override;
 	private:
 		virtual void			register_resource( const Utilities::GUID ID )noexcept override;
 		virtual Status			get_status( const Utilities::GUID ID )noexcept  override;

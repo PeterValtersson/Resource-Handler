@@ -134,7 +134,7 @@ namespace ResourceTests
 				ResourceHandler::Resource r( "test" );
 				r.get_copy<int>();
 				auto status = r.get_status();
-				Assert::IsTrue( ResourceHandler::Status::In_Memory == status );
+				Assert::IsTrue( ResourceHandler::Status::InMemory == status );
 
 			}
 

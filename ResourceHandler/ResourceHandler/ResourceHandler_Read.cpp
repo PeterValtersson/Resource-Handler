@@ -67,6 +67,9 @@ void ResourceHandler::ResourceHandler_Read::update()noexcept
 		std::this_thread::sleep_for( 32ms );
 	}
 }
+void ResourceHandler::ResourceHandler_Read::add_parser(const Utilities::GUID type, const std::string& library_path)
+{
+}
 void ResourceHandler::ResourceHandler_Read::register_resource( const Utilities::GUID ID )noexcept
 {
 	PROFILE;

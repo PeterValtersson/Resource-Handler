@@ -87,7 +87,6 @@ namespace ResourceHandler
 		// Will allocate memory using the allocator specified at creation.
 		//  \exception ResourceNotFound
 		virtual const Utilities::Memory::Handle read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator ) = 0;
-
 	protected:
 		IResourceArchive()
 		{};

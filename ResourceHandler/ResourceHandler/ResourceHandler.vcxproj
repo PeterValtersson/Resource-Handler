@@ -156,6 +156,7 @@
     <ClInclude Include="..\include\IResourceHandler.h" />
     <ClInclude Include="..\include\Resource.h" />
     <ClInclude Include="ActionRequest.h" />
+    <ClInclude Include="LoaderSignatures.h" />
     <ClInclude Include="ResourceHandler_Read.h" />
     <ClInclude Include="ResourceHandler_Read_Imp.h" />
     <ClInclude Include="ResourceHandler_Write.h" />

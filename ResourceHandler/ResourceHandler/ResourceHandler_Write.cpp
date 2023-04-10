@@ -1,6 +1,6 @@
 #include "ResourceHandler_Write.h"
 #include <Utilities/Profiler/Profiler.h>
-
+#include <windows.h>
 
 ResourceHandler::ResourceHandler_Write::ResourceHandler_Write( std::shared_ptr<IResourceArchive> archive )
 	: archive( archive ), allocator( 1_gb / Utilities::Memory::ChunkyAllocator::blocksize() )
@@ -12,13 +12,38 @@ ResourceHandler::ResourceHandler_Write::~ResourceHandler_Write()
 {
 
 }
+void ResourceHandler::ResourceHandler_Write::add_parser(const Utilities::GUID type, const std::string& library_path)
+{
+	if (parsers.Exists(type))
+		return;
+
+	if (!libraries.Exists(library_path))
+	{
+		HINSTANCE IDDLL = LoadLibrary("AssimpInterface.dll");
+		if (IDDLL == 0)
+			return;
+
+		libraries.Add(library_path, IDDLL);
+	}
+
+	auto library = libraries.Get(library_path);
+
+	Parsers::ParserData data;
+	data.parse = (parse_callback_signature)GetProcAddress(library, "parse");
+
+	if (data.parse == 0)
+		return;
+
+	parsers.Add(type, data);
+
+}
 void ResourceHandler::ResourceHandler_Write::save_all()
 {
 	PROFILE;
 	To_Save_Vector to_save;
 	auto& ids = resources.peek<Entries::ID>();
 	auto& has_changed = resources.get<Entries::HasChanged>();
-	auto& handles = resources.peek<Entries::Memory_Raw>();
+	auto& handles = resources.peek<Entries::Memory>();
 	for ( size_t i = 0; i < resources.size(); i++ )
 	{
 		if ( has_changed[i] )
@@ -34,14 +59,14 @@ void ResourceHandler::ResourceHandler_Write::register_resource( const Utilities:
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
-		resources.add( ID, Status::None, 0, 0, 0, false );
+		resources.add( ID, Status::None, 0, 0, false );
 }
 
 ResourceHandler::Status ResourceHandler::ResourceHandler_Write::get_status( const Utilities::GUID ID ) noexcept
 {
 	PROFILE;
 	if ( auto find = resources.find( ID ); !find.has_value() )
-		return Status::Not_Found;
+		return Status::NotFound;
 	else
 	{
 		return resources.peek<Entries::Status>( *find );
@@ -98,12 +123,12 @@ void ResourceHandler::ResourceHandler_Write::use_data( const Utilities::GUID ID,
 		{
 			if ( archive->get_size( ID ) == 0 )
 				throw NoResourceData( archive->get_name( ID ), ID );
-			else if ( !flag_has( resources.peek<Entries::Status>( *find ), Status::In_Memory ) )
+			else if ( !flag_has( resources.peek<Entries::Status>( *find ), Status::InMemory ) )
 			{
-				resources.get<Entries::Memory_Raw>( *find ) = archive->read( ID, allocator );
-				resources.get<Entries::Status>( *find ) = Status::In_Memory;
+				resources.get<Entries::Memory>( *find ) = archive->read( ID, allocator );
+				resources.get<Entries::Status>( *find ) = Status::InMemory;
 			}
-			allocator.peek_data( resources.peek<Entries::Memory_Raw>( *find ), callback );
+			allocator.peek_data( resources.peek<Entries::Memory>( *find ), callback );
 		}
 		catch ( ... )
 		{
@@ -121,12 +146,12 @@ void ResourceHandler::ResourceHandler_Write::modify_data( const Utilities::GUID 
 	{
 		try
 		{
-			if ( archive->get_size( ID ) > 0 && !flag_has( resources.peek<Entries::Status>( *find ), Status::In_Memory ) )
+			if ( archive->get_size( ID ) > 0 && !flag_has( resources.peek<Entries::Status>( *find ), Status::InMemory ) )
 			{
-				resources.get<Entries::Memory_Raw>( *find ) = archive->read( ID, allocator );
-				resources.get<Entries::Status>( *find ) = Status::In_Memory;
+				resources.get<Entries::Memory>( *find ) = archive->read( ID, allocator );
+				resources.get<Entries::Status>( *find ) = Status::InMemory;
 			}
-			allocator.use_data( resources.peek<Entries::Memory_Raw>( *find ), callback );
+			allocator.use_data( resources.peek<Entries::Memory>( *find ), callback );
 			resources.get<Entries::HasChanged>( *find ) = true;
 		}
 		catch ( ... )
@@ -144,16 +169,16 @@ void ResourceHandler::ResourceHandler_Write::write_data( Utilities::GUID ID, con
 	else
 	{
 
-		if ( flag_has( resources.peek<Entries::Status>( *find ), Status::In_Memory ) )
+		if ( flag_has( resources.peek<Entries::Status>( *find ), Status::InMemory ) )
 		{
-			allocator.write_data( resources.get<Entries::Memory_Raw>( *find ), data, size );
+			allocator.write_data( resources.get<Entries::Memory>( *find ), data, size );
 			resources.get<Entries::HasChanged>( *find ) = true;
 		}
 		else
 		{
-			resources.get<Entries::Memory_Raw>( *find ) = allocator.allocate( size );
-			allocator.write_data( resources.get<Entries::Memory_Raw>( *find ), data, size );
-			resources.get<Entries::Status>( *find ) = Status::In_Memory;
+			resources.get<Entries::Memory>( *find ) = allocator.allocate( size );
+			allocator.write_data( resources.get<Entries::Memory>( *find ), data, size );
+			resources.get<Entries::Status>( *find ) = Status::InMemory;
 			resources.get<Entries::HasChanged>( *find ) = true;
 		}
 

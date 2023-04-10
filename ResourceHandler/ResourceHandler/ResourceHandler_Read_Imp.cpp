@@ -32,7 +32,7 @@ ResourceHandler::Status ResourceHandler::ResourceHandler_Read_Imp::get_status(Ut
 {
 	if (const auto find = resources.find(ID); find.has_value())
 		return resources.peek<Entries::Status>(*find);
-	return Status::Not_Found;
+	return Status::NotFound;
 }
 void ResourceHandler::ResourceHandler_Read_Imp::inc_refCount(Utilities::GUID ID)noexcept
 {
@@ -64,13 +64,13 @@ Utilities::Memory::Handle ResourceHandler::ResourceHandler_Read_Imp::get_handle(
 		{
 			if (archive->get_size(ID) == 0)
 				throw NoResourceData(archive->get_name(ID), ID);
-			else if (flag_has(resources.peek<Entries::Status>(*find), Status::In_Memory))
+			else if (flag_has(resources.peek<Entries::Status>(*find), Status::InMemory))
 				return resources.peek<Entries::Memory_Raw>(*find);
-			else if (flag_has(resources.peek<Entries::Status>(*find), Status::Could_Not_Load))
+			else if (flag_has(resources.peek<Entries::Status>(*find), Status::CouldNotLoad))
 			{
 				throw Utilities::Memory::InvalidHandle("");
 			}
-			else if (flag_has(resources.peek<Entries::Status>(*find), Status::Not_Found))
+			else if (flag_has(resources.peek<Entries::Status>(*find), Status::NotFound))
 			{
 				throw ResourceNotFound(ID);
 			}
@@ -108,7 +108,7 @@ Utilities::optional<Utilities::GUID> ResourceHandler::ResourceHandler_Read_Imp::
 	PROFILE;
 	for (size_t i = 0; i < resources.size(); ++i)// TODO: Change to a suitable method for choosing resource to load  (FIFO, FILO, Highest refcount, etc.)
 	{
-		if (!flag_has(resources.peek<Entries::Status>(i), Status::In_Memory | Status::Could_Not_Load))
+		if (!flag_has(resources.peek<Entries::Status>(i), Status::InMemory | Status::CouldNotLoad))
 		{
 			if (archive->get_size(resources.peek<Entries::ID>(i)) > 0)
 			{

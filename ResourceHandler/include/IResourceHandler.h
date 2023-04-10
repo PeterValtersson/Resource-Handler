@@ -4,12 +4,14 @@
 #include "DLL_Export.h"
 #include <IResourceArchive.h>
 #include <Utilities/Flags.h>
+#include <string>
 
 namespace ResourceHandler
 {
 	enum class Flags{
-		None,
-		Persistent
+		None = 0 << 0,
+		Persistent = 1 << 1,
+		RuntimeResource = 1 << 2
 	};
 
 	ENUM_FLAGS( ResourceHandler::Flags );
@@ -19,10 +21,7 @@ namespace ResourceHandler
 		Not_Found = 1 << 1,
 		Could_Not_Load = 1 << 2,
 		In_Memory = 1 << 3,
-		Could_Not_Parse = 1 << 4,
-		In_Memory_Parsed = 1 << 5,
-		Loading = 1 << 6,
-		Parsing = 1 << 7
+		Loading = 1 << 4
 	};
 
 	ENUM_FLAGS( ResourceHandler::Status );
@@ -43,6 +42,10 @@ namespace ResourceHandler
 	};
 
 	typedef uint32_t RefCount;
+
+	typedef void(__cdecl* parse_callback_signature)();
+	using parse_callback = std::function<void()>;
+
 	class IResourceHandler{
 		friend class Resource;
 	public:
@@ -52,6 +55,9 @@ namespace ResourceHandler
 		DECLSPEC_RH static std::shared_ptr<ResourceHandler::IResourceHandler> get();
 		DECLSPEC_RH static void set(std::shared_ptr<ResourceHandler::IResourceHandler> rh);
 		DECLSPEC_RH static std::shared_ptr<ResourceHandler::IResourceHandler> create( AccessMode mode, std::shared_ptr<IResourceArchive> archive );
+
+
+		virtual void add_parser(const Utilities::GUID type, const std::string& library_path) = 0;
 
 		virtual void save_all()
 		{
