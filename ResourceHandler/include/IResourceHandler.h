@@ -18,9 +18,9 @@ namespace ResourceHandler
 
 	enum class Status : uint32_t {
 		None = 0 << 0,
-		Not_Found = 1 << 1,
-		Could_Not_Load = 1 << 2,
-		In_Memory = 1 << 3,
+		NotFound = 1 << 1,
+		CouldNotLoad = 1 << 2,
+		InMemory = 1 << 3,
 		Loading = 1 << 4
 	};
 

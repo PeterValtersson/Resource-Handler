@@ -61,7 +61,7 @@ namespace ResourceHandler
 		ResourceHandler_Write( std::shared_ptr<IResourceArchive> archive );
 		~ResourceHandler_Write();
 
-		virtual void add_parser(const Utilities::GUID type)override;
+		virtual void add_parser(const Utilities::GUID type, const std::string& library_path)override;
 		virtual void save_all()override;
 	protected:
 		virtual void			register_resource( const Utilities::GUID ID )noexcept override;
@@ -83,16 +83,14 @@ namespace ResourceHandler
 
 		struct Entries : public Utilities::Memory::SofA<Utilities::GUID, Utilities::GUID::Hasher,
 			Status, // Status,
-			Utilities::Memory::Handle,	 // Raw
-			Utilities::Memory::Handle,	 // Parsed / VRAM info(Vertex Count, etc.)
+			Utilities::Memory::Handle,
 			RefCount,
 			bool						// HasChanged
 		> {
 			enum {
 				ID,
 				Status,
-				Memory_Raw,
-				Memory_Parsed,
+				Memory,
 				RefCount,
 				HasChanged
 			};
