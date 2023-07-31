@@ -89,7 +89,7 @@ void ResourceHandler::BinaryArchive::save_resource_info()
 	writeTail();
 }
 
-void ResourceHandler::BinaryArchive::save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
+void ResourceHandler::BinaryArchive::save( const To_Save& to_save, Utilities::Memory::Allocator& allocator )
 {
 	PROFILE;
 	try
@@ -103,7 +103,7 @@ void ResourceHandler::BinaryArchive::save( const To_Save& to_save, Utilities::Me
 	save_resource_info();
 }
 
-void ResourceHandler::BinaryArchive::save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )
+void ResourceHandler::BinaryArchive::save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::Allocator& allocator )
 {
 	PROFILE;
 	for ( const auto& to_save : to_save_vector )
@@ -120,7 +120,7 @@ void ResourceHandler::BinaryArchive::save_multiple( const To_Save_Vector& to_sav
 	save_resource_info();
 }
 
-void ResourceHandler::BinaryArchive::_save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )
+void ResourceHandler::BinaryArchive::_save_resource_info_data( const To_Save& to_save, Utilities::Memory::Allocator& allocator )
 {
 	PROFILE;
 	if ( const auto entry = entries.find( to_save.first ); !entry.has_value() )
@@ -235,7 +235,7 @@ void ResourceHandler::BinaryArchive::set_type( const Utilities::GUID ID, const U
 		entries.set<Entries::Type>( *entry, type );
 }
 
-const Utilities::Memory::Handle ResourceHandler::BinaryArchive::read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator )
+const Utilities::Memory::Handle ResourceHandler::BinaryArchive::read( const Utilities::GUID ID, Utilities::Memory::Allocator& allocator )
 {
 	PROFILE;
 	if ( auto entry = entries.find( ID ); !entry.has_value() )
@@ -250,5 +250,21 @@ const Utilities::Memory::Handle ResourceHandler::BinaryArchive::read( const Util
 			data.read_from_stream( stream );
 		} );
 		return handle;
+	}
+}
+
+const Utilities::Memory::Handle ResourceHandler::BinaryArchive::read(const Utilities::GUID ID, Utilities::Memory::Allocator& allocator, const parse_callback& parser)
+{
+	PROFILE;
+	if (auto entry = entries.find(ID); !entry.has_value())
+		throw ResourceNotFound(ID);
+	else
+	{
+		auto size = entries.get<Entries::DataSize>(*entry);
+		stream.seekg(entries.get<Entries::DataStart>(*entry));
+		// TODO: Limit stream so you can't read outside of memory
+		parser(&allocator, &stream);
+
+		return 0;
 	}
 }

@@ -9,6 +9,7 @@
 #include <functional>
 #include <atomic>
 #include <string_view>
+#include "LoaderSignatures.h"
 
 namespace ResourceHandler
 {
@@ -72,8 +73,8 @@ namespace ResourceHandler
 		virtual void					create_from_ID( const Utilities::GUID ID ) = 0;
 		virtual void					create( const Utilities::GUID ID, std::string_view name ) = 0;
 
-		virtual void save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator ) = 0;
-		virtual void save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator ) = 0;
+		virtual void save( const To_Save& to_save, Utilities::Memory::Allocator& allocator ) = 0;
+		virtual void save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::Allocator& allocator ) = 0;
 
 		// Write a Memory_Block to a resource
 		//
@@ -86,7 +87,8 @@ namespace ResourceHandler
 		//
 		// Will allocate memory using the allocator specified at creation.
 		//  \exception ResourceNotFound
-		virtual const Utilities::Memory::Handle read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator ) = 0;
+		virtual const Utilities::Memory::Handle read( const Utilities::GUID ID, Utilities::Memory::Allocator& allocator) = 0;
+		virtual const Utilities::Memory::Handle read(const Utilities::GUID ID, Utilities::Memory::Allocator& allocator, const parse_callback& parser) = 0;
 	protected:
 		IResourceArchive()
 		{};

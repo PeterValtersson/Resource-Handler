@@ -17,8 +17,8 @@ namespace ResourceHandler
 		Utilities::GUID			create_from_name( std::string_view name )final;
 		void					create_from_ID( const Utilities::GUID ID )final;
 		void					create( const Utilities::GUID ID, std::string_view name )final;
-		void					save( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator )final;
-		void					save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::ChunkyAllocator& allocator )final;
+		void					save( const To_Save& to_save, Utilities::Memory::Allocator& allocator )final;
+		void					save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::Allocator& allocator )final;
 		const bool				exists( const Utilities::GUID ID )const noexcept final;
 		const size_t			get_size( const Utilities::GUID ID )const final;
 		const std::string		get_name( const Utilities::GUID ID )const final;
@@ -26,7 +26,8 @@ namespace ResourceHandler
 		void					set_name( const Utilities::GUID ID, std::string_view name )final;
 		void					set_type( const Utilities::GUID ID, const Utilities::GUID type )final;
 
-		const Utilities::Memory::Handle		read( const Utilities::GUID ID, Utilities::Memory::ChunkyAllocator& allocator )final;
+		const Utilities::Memory::Handle	read( const Utilities::GUID ID, Utilities::Memory::Allocator& allocator )final;
+		const Utilities::Memory::Handle read(const Utilities::GUID ID, Utilities::Memory::Allocator& allocator, const parse_callback& parser)final;
 
 	private:
 
@@ -51,7 +52,7 @@ namespace ResourceHandler
 
 	private:
 		void save_resource_info();
-		void _save_resource_info_data( const To_Save& to_save, Utilities::Memory::ChunkyAllocator& allocator );
+		void _save_resource_info_data( const To_Save& to_save, Utilities::Memory::Allocator& allocator );
 
 		void readHeader();
 		void readTail();

@@ -5,6 +5,7 @@
 #include <IResourceArchive.h>
 #include <Utilities/Flags.h>
 #include <string>
+#include "LoaderSignatures.h"
 
 namespace ResourceHandler
 {
@@ -42,9 +43,6 @@ namespace ResourceHandler
 	};
 
 	typedef uint32_t RefCount;
-
-	typedef void(__cdecl* parse_callback_signature)();
-	using parse_callback = std::function<void()>;
 
 	class IResourceHandler{
 		friend class Resource;

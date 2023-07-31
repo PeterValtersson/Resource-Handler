@@ -42,7 +42,7 @@
     <ClInclude Include="ResourceLoaderThread.h">
       <Filter>Read Only</Filter>
     </ClInclude>
-    <ClInclude Include="LoaderSignatures.h">
+    <ClInclude Include="..\include\LoaderSignatures.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
