@@ -13,8 +13,10 @@ namespace ResourceHandler
 		ResourceHandler_Read( std::shared_ptr<IResourceArchive> archive );
 		~ResourceHandler_Read();
 
+		virtual void set_parser_memory_handler(std::shared_ptr<Utilities::Memory::Allocator> memory_handler) override;
 		virtual std::shared_ptr<IResourceArchive> get_archive()override;
 		virtual void add_parser(const Utilities::GUID type, const std::string& library_path)override;
+		virtual void add_parser(const Utilities::GUID type, const parse_callback& parse_callback) override;
 	private:
 		virtual void			register_resource( const Utilities::GUID ID, const Flags flag = Flags::None)noexcept override;
 		virtual Status			get_status( const Utilities::GUID ID )noexcept  override;

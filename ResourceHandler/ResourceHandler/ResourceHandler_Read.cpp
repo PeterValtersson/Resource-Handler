@@ -59,7 +59,6 @@ void ResourceHandler::ResourceHandler_Read::update()noexcept
 	PROFILE( "Resource Handler Thread" );
 	while ( running )
 	{
-		PROFILE( "Running" );
 
 		perform_actions();
 
@@ -67,11 +66,17 @@ void ResourceHandler::ResourceHandler_Read::update()noexcept
 		std::this_thread::sleep_for( 32ms );
 	}
 }
+void ResourceHandler::ResourceHandler_Read::set_parser_memory_handler(std::shared_ptr<Utilities::Memory::Allocator> memory_handler)
+{
+}
 std::shared_ptr<ResourceHandler::IResourceArchive> ResourceHandler::ResourceHandler_Read::get_archive()
 {
 	return archive;
 }
 void ResourceHandler::ResourceHandler_Read::add_parser(const Utilities::GUID type, const std::string& library_path)
+{
+}
+void ResourceHandler::ResourceHandler_Read::add_parser(const Utilities::GUID type, const parse_callback& parse_callback)
 {
 }
 void ResourceHandler::ResourceHandler_Read::register_resource( const Utilities::GUID ID, const Flags flag)noexcept

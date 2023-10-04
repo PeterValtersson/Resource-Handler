@@ -26,7 +26,9 @@ namespace ResourceHandler
 		CouldNotLoad = 1 << 1,
 		InMemory = 1 << 2,
 		Loading = 1 << 3,
-		All = NotFound | CouldNotLoad | InMemory | Loading
+		Parsing = 1 << 4,
+		Parsed = 1 << 5,
+		All = NotFound | CouldNotLoad | InMemory | Loading | Parsing | Parsed
 	};
 	ENUM_FLAGS(Status);
 
@@ -57,8 +59,10 @@ namespace ResourceHandler
 		DECLSPEC_RH static void set(std::shared_ptr<ResourceHandler::IResourceHandler> rh);
 		DECLSPEC_RH static std::shared_ptr<ResourceHandler::IResourceHandler> create(AccessMode mode, std::shared_ptr<IResourceArchive> archive);
 
+		virtual void set_parser_memory_handler(std::shared_ptr<Utilities::Memory::Allocator> memory_handler) = 0;
 		virtual std::shared_ptr<IResourceArchive> get_archive() = 0;
 		virtual void add_parser(const Utilities::GUID type, const std::string& library_path) = 0;
+		virtual void add_parser(const Utilities::GUID type, const parse_callback& parse_callback) = 0;
 
 		virtual void save_all()
 		{
