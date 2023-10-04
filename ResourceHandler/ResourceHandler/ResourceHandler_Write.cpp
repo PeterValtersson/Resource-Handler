@@ -1,6 +1,7 @@
 #include "ResourceHandler_Write.h"
 #include <Utilities/Profiler/Profiler.h>
 #include <windows.h>
+#include <Utilities/Console/Console.h>
 
 ResourceHandler::ResourceHandler_Write::ResourceHandler_Write( std::shared_ptr<IResourceArchive> archive )
 	: archive( archive ), allocator( 1_gb / Utilities::Memory::ChunkyAllocator::blocksize() )
@@ -11,6 +12,10 @@ ResourceHandler::ResourceHandler_Write::ResourceHandler_Write( std::shared_ptr<I
 ResourceHandler::ResourceHandler_Write::~ResourceHandler_Write()
 {
 
+}
+std::shared_ptr<ResourceHandler::IResourceArchive> ResourceHandler::ResourceHandler_Write::get_archive()
+{
+	return archive;
 }
 void ResourceHandler::ResourceHandler_Write::add_parser(const Utilities::GUID type, const std::string& library_path)
 {
@@ -40,6 +45,7 @@ void ResourceHandler::ResourceHandler_Write::add_parser(const Utilities::GUID ty
 void ResourceHandler::ResourceHandler_Write::save_all()
 {
 	PROFILE;
+	Utilities::console_print("Save all");
 	To_Save_Vector to_save;
 	auto& ids = resources.peek<Entries::ID>();
 	auto& has_changed = resources.get<Entries::HasChanged>();
@@ -55,11 +61,18 @@ void ResourceHandler::ResourceHandler_Write::save_all()
 	if ( to_save.size() > 0 )
 		archive->save_multiple( to_save, allocator );
 }
-void ResourceHandler::ResourceHandler_Write::register_resource( const Utilities::GUID ID )noexcept
+void ResourceHandler::ResourceHandler_Write::register_resource( const Utilities::GUID ID, const Flags flag)noexcept
 {
 	PROFILE;
-	if ( auto find = resources.find( ID ); !find.has_value() )
-		resources.add( ID, Status::None, 0, 0, false );
+	if (auto find = resources.find(ID); find.has_value())
+	{
+		if (flag_has(flag, Flags::Modifying))
+		{
+			set_flag(ID, flag);
+		}
+	}
+	else
+		resources.add( ID, Status::None, 0, 0, false, flag);
 }
 
 ResourceHandler::Status ResourceHandler::ResourceHandler_Write::get_status( const Utilities::GUID ID ) noexcept
@@ -70,6 +83,28 @@ ResourceHandler::Status ResourceHandler::ResourceHandler_Write::get_status( cons
 	else
 	{
 		return resources.peek<Entries::Status>( *find );
+	}
+}
+
+void ResourceHandler::ResourceHandler_Write::set_flag(const Utilities::GUID ID, const Flags flag) noexcept
+{
+	PROFILE;
+	if (auto find = resources.find(ID); !find.has_value())
+		return; // throw ResourceNotFound( ID );
+	else
+	{
+		resources.get<Entries::Flags>(*find) |= flag;
+	}
+}
+
+void ResourceHandler::ResourceHandler_Write::remove_flag(const Utilities::GUID ID, const Flags flag) noexcept
+{
+	PROFILE;
+	if (auto find = resources.find(ID); !find.has_value())
+		return; // throw ResourceNotFound( ID );
+	else
+	{
+		resources.get<Entries::Flags>(*find) &= ~flag;
 	}
 }
 
@@ -119,6 +154,8 @@ void ResourceHandler::ResourceHandler_Write::use_data( const Utilities::GUID ID,
 		return; // throw ResourceNotFound( ID );
 	else
 	{
+		if (flag_has(resources.peek<Entries::Flags>(*find), Flags::Modifying))
+			return;
 		try
 		{
 			if ( archive->get_size( ID ) == 0 )
@@ -146,13 +183,15 @@ void ResourceHandler::ResourceHandler_Write::modify_data( const Utilities::GUID 
 	{
 		try
 		{
-			if ( archive->get_size( ID ) > 0 && !flag_has( resources.peek<Entries::Status>( *find ), Status::InMemory ) )
+			if ( !flag_has( resources.peek<Entries::Status>( *find ), Status::InMemory ) )
 			{
-				resources.get<Entries::Memory>( *find ) = archive->read( ID, allocator );
-				resources.get<Entries::Status>( *find ) = Status::InMemory;
+				resources.get<Entries::Memory>(*find) = archive->read(ID, allocator);
+				resources.get<Entries::Status>(*find) = Status::InMemory;
 			}
+
 			allocator.use_data( resources.peek<Entries::Memory>( *find ), callback );
-			resources.get<Entries::HasChanged>( *find ) = true;
+			resources.get<Entries::Status>(*find) = Status::InMemory;
+			resources.get<Entries::HasChanged>(*find) = true;
 		}
 		catch ( ... )
 		{

@@ -17,10 +17,7 @@ namespace ResourceHandler
 		{
 			IResourceHandler::get()->register_resource( ID );
 		}
-		Resource( Utilities::GUID ID, Utilities::GUID type, Flags flags = Flags::None ) : ID( ID ), checkedIn( false )
-		{
-			IResourceHandler::get()->register_resource( ID );
-		}
+
 		Resource( const Resource& other )noexcept : ID( other.ID ), checkedIn( false )
 		{
 			// Already registered when other was created.
@@ -96,6 +93,8 @@ namespace ResourceHandler
 			check_in();
 			IResourceHandler::get()->modify_data( ID, callback );
 		}
+		
+
 		template<class T>
 		inline T get_copy()const
 		{
@@ -128,6 +127,15 @@ namespace ResourceHandler
 		operator Utilities::GUID()const
 		{
 			return ID;
+		}
+
+		void set_flag(const Flags flags)
+		{
+			IResourceHandler::get()->set_flag(ID, flags);
+		}
+		void remove_flag(const Flags flags)
+		{
+			IResourceHandler::get()->remove_flag(ID, flags);
 		}
 	protected:
 		Utilities::GUID ID;

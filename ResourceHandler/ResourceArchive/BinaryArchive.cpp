@@ -2,54 +2,59 @@
 #include <filesystem>
 #include <Utilities/Profiler/Profiler.h>
 #include <Utilities/FStreamHelpers.h>
+#include <Utilities/Console/Console.h>
 
 namespace fs = std::filesystem;
 ResourceHandler::BinaryArchive::BinaryArchive( std::string_view archivePath, AccessMode mode ) : archivePath( archivePath ), mode( mode )
 {
+	open();
+}
+
+void ResourceHandler::BinaryArchive::open()
+{
 	PROFILE;
 	auto m = std::ios::binary | std::ios::in | std::ios::ate;
-	if ( mode == AccessMode::read_write )
+	if (mode == AccessMode::read_write)
 		m |= std::ios::out;
 
-	stream.open( archivePath, m );
-	if ( !stream.is_open() )
+	stream.open(archivePath, m);
+	if (!stream.is_open())
 	{
-		if ( fs::exists( archivePath ) )
-			throw PathNotAccessible( archivePath );
-		else if ( mode != AccessMode::read_write )
-			throw PathNotFound( archivePath );
+		if (fs::exists(archivePath))
+			throw PathNotAccessible(archivePath);
+		else if (mode != AccessMode::read_write)
+			throw PathNotFound(archivePath);
 
 		std::ofstream newArchive(archivePath.data(), std::ios::binary);
-		if ( !newArchive.is_open() )
+		if (!newArchive.is_open())
 			throw UNKOWN_ERROR;
 
 
 		header.version = lastestVersion;
-		header.tailStart = sizeof( header );
+		header.tailStart = sizeof(header);
 		header.unusedSpace = 0;
-		Utilities::Binary_Stream::write( newArchive, header );
-		entries.writeToFile( newArchive );
+		Utilities::Binary_Stream::write(newArchive, header);
+		entries.writeToFile(newArchive);
 
 		newArchive.close();
 
-		stream.open( archivePath, m );
-		if ( !stream.is_open() )
+		stream.open(archivePath, m);
+		if (!stream.is_open())
 			throw UNKOWN_ERROR;
 	}
 
-	size_t totalFileSize = size_t( stream.tellg() );
-	if ( totalFileSize < sizeof( header ) )
-		throw ArchiveCorrupt( 0 );
+	size_t totalFileSize = size_t(stream.tellg());
+	if (totalFileSize < sizeof(header))
+		throw ArchiveCorrupt(0);
 
 	readHeader();
 
-	if ( header.tailStart > totalFileSize )
-		throw ArchiveCorrupt( 1 );
-	else if ( header.tailStart < sizeof( header ) )
-		throw ArchiveCorrupt( 2 );
-	else if ( header.unusedSpace > totalFileSize )
-		throw ArchiveCorrupt( 3 );
-
+	if (header.tailStart > totalFileSize)
+		throw ArchiveCorrupt(1);
+	else if (header.tailStart < sizeof(header))
+		throw ArchiveCorrupt(2);
+	else if (header.unusedSpace > totalFileSize)
+		throw ArchiveCorrupt(3);
 	readTail();
 }
 
@@ -87,6 +92,17 @@ void ResourceHandler::BinaryArchive::save_resource_info()
 	PROFILE;
 	writeHeader();
 	writeTail();
+
+
+	stream.close();
+
+	auto m = std::ios::binary | std::ios::in | std::ios::ate;
+	if (mode == AccessMode::read_write)
+		m |= std::ios::out;
+
+	stream.open(archivePath, m); 
+	if (!stream.is_open())
+		throw UNKOWN_ERROR;
 }
 
 void ResourceHandler::BinaryArchive::save( const To_Save& to_save, Utilities::Memory::Allocator& allocator )
@@ -106,6 +122,7 @@ void ResourceHandler::BinaryArchive::save( const To_Save& to_save, Utilities::Me
 void ResourceHandler::BinaryArchive::save_multiple( const To_Save_Vector& to_save_vector, Utilities::Memory::Allocator& allocator )
 {
 	PROFILE;
+	Utilities::console_print(archivePath);
 	for ( const auto& to_save : to_save_vector )
 	{
 		try
@@ -114,6 +131,7 @@ void ResourceHandler::BinaryArchive::save_multiple( const To_Save_Vector& to_sav
 		}
 		catch ( ... )
 		{
+			Utilities::console_print("Exception");
 			save_resource_info();
 		}
 	}
@@ -123,12 +141,15 @@ void ResourceHandler::BinaryArchive::save_multiple( const To_Save_Vector& to_sav
 void ResourceHandler::BinaryArchive::_save_resource_info_data( const To_Save& to_save, Utilities::Memory::Allocator& allocator )
 {
 	PROFILE;
+	Utilities::console_print("Saving resource");
 	if ( const auto entry = entries.find( to_save.first ); !entry.has_value() )
 		throw ResourceNotFound( to_save.first );
 	else
 	{
+		Utilities::console_print(entries.get<Entries::Name>(*entry));
 		allocator.peek_data( to_save.second, [&]( const Utilities::Memory::ConstMemoryBlock mem )
 		{
+				
 			if ( mem.used_size <= entries.peek<Entries::DataSize>( *entry ) )
 			{
 				stream.seekp( entries.peek<Entries::DataStart>( *entry ) );
@@ -233,6 +254,22 @@ void ResourceHandler::BinaryArchive::set_type( const Utilities::GUID ID, const U
 		throw ResourceNotFound( ID );
 	else
 		entries.set<Entries::Type>( *entry, type );
+}
+
+std::vector<ResourceHandler::ResourceMetaInfo> ResourceHandler::BinaryArchive::get_resources() const noexcept
+{
+	std::vector<ResourceMetaInfo> resources;
+	auto names = entries.peek<Entries::Name>();
+	auto IDs = entries.peek<Entries::ID>();
+	auto types = entries.peek<Entries::Type>();
+	for (size_t i = 0; i < entries.size(); i++)
+		resources.push_back(ResourceMetaInfo{ names[i], IDs[i], types[i] });
+	return resources;
+}
+
+std::vector<ResourceHandler::ResourceMetaInfo> ResourceHandler::BinaryArchive::get_resources_by_type(const Utilities::GUID type) const noexcept
+{
+	return std::vector<ResourceMetaInfo>();
 }
 
 const Utilities::Memory::Handle ResourceHandler::BinaryArchive::read( const Utilities::GUID ID, Utilities::Memory::Allocator& allocator )

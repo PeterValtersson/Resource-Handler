@@ -25,12 +25,14 @@ namespace ResourceHandler
 		const Utilities::GUID	get_type( const Utilities::GUID ID )const final;
 		void					set_name( const Utilities::GUID ID, std::string_view name )final;
 		void					set_type( const Utilities::GUID ID, const Utilities::GUID type )final;
+		virtual std::vector<ResourceMetaInfo> get_resources()const noexcept final;
+		virtual std::vector<ResourceMetaInfo> get_resources_by_type(const Utilities::GUID type)const noexcept final;
 
 		const Utilities::Memory::Handle	read( const Utilities::GUID ID, Utilities::Memory::Allocator& allocator )final;
 		const Utilities::Memory::Handle read(const Utilities::GUID ID, Utilities::Memory::Allocator& allocator, const parse_callback& parser)final;
 
 	private:
-
+		void open();
 		struct Header {
 			uint32_t version = 000001;
 			uint64_t tailStart;

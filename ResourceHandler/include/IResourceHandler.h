@@ -9,23 +9,26 @@
 
 namespace ResourceHandler
 {
-	enum class Flags{
-		None = 0 << 0,
-		Persistent = 1 << 1,
-		RuntimeResource = 1 << 2
+	enum class Flags : uint32_t
+	{
+		None,
+		Persistent = 1 << 0,
+		RuntimeResource = 1 << 1,
+		Modifying = 1 << 2,
+		All = Persistent | RuntimeResource | Modifying
 	};
+	ENUM_FLAGS(Flags);
 
-	ENUM_FLAGS( ResourceHandler::Flags );
-
-	enum class Status : uint32_t {
-		None = 0 << 0,
-		NotFound = 1 << 1,
-		CouldNotLoad = 1 << 2,
-		InMemory = 1 << 3,
-		Loading = 1 << 4
+	enum class Status : uint32_t
+	{
+		None,
+		NotFound = 1 << 0,
+		CouldNotLoad = 1 << 1,
+		InMemory = 1 << 2,
+		Loading = 1 << 3,
+		All = NotFound | CouldNotLoad | InMemory | Loading
 	};
-
-	ENUM_FLAGS( ResourceHandler::Status );
+	ENUM_FLAGS(Status);
 
 	enum class Memory_Type
 	{
@@ -52,9 +55,9 @@ namespace ResourceHandler
 
 		DECLSPEC_RH static std::shared_ptr<ResourceHandler::IResourceHandler> get();
 		DECLSPEC_RH static void set(std::shared_ptr<ResourceHandler::IResourceHandler> rh);
-		DECLSPEC_RH static std::shared_ptr<ResourceHandler::IResourceHandler> create( AccessMode mode, std::shared_ptr<IResourceArchive> archive );
+		DECLSPEC_RH static std::shared_ptr<ResourceHandler::IResourceHandler> create(AccessMode mode, std::shared_ptr<IResourceArchive> archive);
 
-
+		virtual std::shared_ptr<IResourceArchive> get_archive() = 0;
 		virtual void add_parser(const Utilities::GUID type, const std::string& library_path) = 0;
 
 		virtual void save_all()
@@ -64,8 +67,10 @@ namespace ResourceHandler
 
 	protected:
 		/* Only called by Resource*/
-		virtual void		register_resource(const Utilities::GUID ID )noexcept = 0;
-		virtual Status		get_status( const Utilities::GUID ID )noexcept = 0;
+		virtual void		register_resource(const Utilities::GUID ID, const Flags flag = Flags::None)noexcept = 0;
+		virtual Status		get_status(const Utilities::GUID ID)noexcept = 0;
+		virtual void		set_flag(const Utilities::GUID ID, const Flags flag)noexcept = 0;
+		virtual void		remove_flag(const Utilities::GUID ID, const Flags flag)noexcept = 0;
 		virtual void		inc_refCount( const Utilities::GUID ID )noexcept = 0;
 		virtual void		dec_refCount( const Utilities::GUID ID )noexcept = 0;
 		virtual RefCount	get_refCount( const Utilities::GUID ID )const noexcept = 0;
@@ -90,5 +95,7 @@ namespace ResourceHandler
 		IResourceHandler()
 		{}
 	};
+
+	
 }
 #endif

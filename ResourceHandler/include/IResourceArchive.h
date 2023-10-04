@@ -45,6 +45,13 @@ namespace ResourceHandler
 		read_write
 	};
 
+	struct ResourceMetaInfo
+	{
+		std::string name;
+		Utilities::GUID ID;
+		Utilities::GUID type;
+	};
+
 	typedef std::pair<Utilities::GUID, Utilities::Memory::Handle> To_Save;
 	typedef std::vector<std::pair<Utilities::GUID, const Utilities::Memory::Handle>> To_Save_Vector;
 	class IResourceArchive{
@@ -57,6 +64,9 @@ namespace ResourceHandler
 
 		virtual const size_t			num_resources()const noexcept = 0;
 		virtual const bool				exists( const Utilities::GUID ID )const noexcept = 0;
+
+		virtual std::vector<ResourceMetaInfo> get_resources()const noexcept = 0;
+		virtual std::vector<ResourceMetaInfo> get_resources_by_type(const Utilities::GUID type)const noexcept = 0;
 
 		// Looks up the size of the resource with the given ID.
 		//

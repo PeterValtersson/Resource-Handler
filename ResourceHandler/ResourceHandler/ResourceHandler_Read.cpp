@@ -67,10 +67,14 @@ void ResourceHandler::ResourceHandler_Read::update()noexcept
 		std::this_thread::sleep_for( 32ms );
 	}
 }
+std::shared_ptr<ResourceHandler::IResourceArchive> ResourceHandler::ResourceHandler_Read::get_archive()
+{
+	return archive;
+}
 void ResourceHandler::ResourceHandler_Read::add_parser(const Utilities::GUID type, const std::string& library_path)
 {
 }
-void ResourceHandler::ResourceHandler_Read::register_resource( const Utilities::GUID ID )noexcept
+void ResourceHandler::ResourceHandler_Read::register_resource( const Utilities::GUID ID, const Flags flag)noexcept
 {
 	PROFILE;
 	if ( !archive->exists( ID ) )
@@ -85,6 +89,14 @@ ResourceHandler::Status ResourceHandler::ResourceHandler_Read::get_status( const
 	auto f = p.get_future();
 	action_request_queue.push( { RequestType::Get_Status, ID, std::move( p ) } );
 	return f.get().get<Status>();
+}
+
+void ResourceHandler::ResourceHandler_Read::set_flag(const Utilities::GUID ID, const Flags flag) noexcept
+{
+}
+
+void ResourceHandler::ResourceHandler_Read::remove_flag(const Utilities::GUID ID, const Flags flag) noexcept
+{
 }
 
 void ResourceHandler::ResourceHandler_Read::inc_refCount( const Utilities::GUID ID )noexcept

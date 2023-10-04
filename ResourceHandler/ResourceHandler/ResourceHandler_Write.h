@@ -61,11 +61,14 @@ namespace ResourceHandler
 		ResourceHandler_Write( std::shared_ptr<IResourceArchive> archive );
 		~ResourceHandler_Write();
 
+		virtual std::shared_ptr<IResourceArchive> get_archive()override;
 		virtual void add_parser(const Utilities::GUID type, const std::string& library_path)override;
 		virtual void save_all()override;
 	protected:
-		virtual void			register_resource( const Utilities::GUID ID )noexcept override;
-		virtual Status			get_status( const Utilities::GUID ID )noexcept  override;
+		virtual void			register_resource( const Utilities::GUID ID, const Flags flag = Flags::None)noexcept override;
+		virtual Status			get_status( const Utilities::GUID ID )noexcept  override; 
+		virtual void			set_flag(const Utilities::GUID ID, const Flags flag)noexcept override;
+		virtual void			remove_flag(const Utilities::GUID ID, const Flags flag)noexcept override;
 		virtual void			inc_refCount( const Utilities::GUID ID )noexcept  override;
 		virtual void			dec_refCount( const Utilities::GUID ID )noexcept  override;
 		virtual RefCount		get_refCount( const Utilities::GUID ID )const noexcept override;
@@ -85,14 +88,16 @@ namespace ResourceHandler
 			Status, // Status,
 			Utilities::Memory::Handle,
 			RefCount,
-			bool						// HasChanged
+			bool,						// HasChanged
+			Flags
 		> {
 			enum {
 				ID,
 				Status,
 				Memory,
 				RefCount,
-				HasChanged
+				HasChanged,
+				Flags
 			};
 		} resources;
 
