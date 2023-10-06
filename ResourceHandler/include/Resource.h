@@ -15,7 +15,8 @@ namespace ResourceHandler
 		}
 		Resource( Utilities::GUID ID, Flags flags = Flags::None ) : ID( ID ), checkedIn( false )
 		{
-			IResourceHandler::get()->register_resource( ID );
+			if(ID.is_valid())
+				IResourceHandler::get()->register_resource( ID );
 		}
 
 		Resource( const Resource& other )noexcept : ID( other.ID ), checkedIn( false )
@@ -57,6 +58,8 @@ namespace ResourceHandler
 
 		inline void check_in()
 		{
+			if (!ID.is_valid())
+				return;
 			if ( !checkedIn )
 				IResourceHandler::get()->inc_refCount( ID );
 			checkedIn = true;
@@ -64,25 +67,35 @@ namespace ResourceHandler
 
 		inline void check_out()
 		{
+			if (!ID.is_valid())
+				return;
 			if ( checkedIn )
 				IResourceHandler::get()->dec_refCount( ID );
 			checkedIn = false;
 		}
 		inline void set_name( std::string_view name )
 		{
+			if (!ID.is_valid())
+				return;
 			IResourceHandler::get()->set_name( ID, name );
 		}
 		inline std::string get_name()
 		{
+			if (!ID.is_valid())
+				return "";
 			return IResourceHandler::get()->get_name( ID );
 		}
 		inline uint32_t get_refCount()const
 		{
+			if (!ID.is_valid())
+				return 0;
 			return IResourceHandler::get()->get_refCount( ID );
 		}
 
 		inline void use_data( const std::function<void( const Utilities::Memory::ConstMemoryBlock data )>& callback )const
 		{
+			if (!ID.is_valid())
+				return;
 			if ( !checkedIn )
 				IResourceHandler::get()->inc_refCount( ID );
 			checkedIn = true;
@@ -90,6 +103,8 @@ namespace ResourceHandler
 		}
 		inline void modify_data( const std::function<void( const Utilities::Memory::MemoryBlock data )>& callback )
 		{
+			if (!ID.is_valid())
+				return;
 			check_in();
 			IResourceHandler::get()->modify_data( ID, callback );
 		}
@@ -98,6 +113,8 @@ namespace ResourceHandler
 		template<class T>
 		inline T get_copy()const
 		{
+			if (!ID.is_valid())
+				return T();
 			if ( !checkedIn )
 				IResourceHandler::get()->inc_refCount( ID );
 			checkedIn = true;
@@ -110,17 +127,23 @@ namespace ResourceHandler
 		}
 		inline void write( const void* const data, size_t size )
 		{
+			if (!ID.is_valid())
+				return;
 			check_in();
 			IResourceHandler::get()->write_data( ID, data, size );
 		}
 		template<class T>
 		inline void write( const T& t )
 		{
+			if (!ID.is_valid())
+				return;
 			write( &t, sizeof( T ) );
 		}
 
 		Status get_status()const
 		{
+			if (!ID.is_valid())
+				return Status::None;
 			return IResourceHandler::get()->get_status( ID );
 		}
 
@@ -131,10 +154,14 @@ namespace ResourceHandler
 
 		void set_flag(const Flags flags)
 		{
+			if (!ID.is_valid())
+				return;
 			IResourceHandler::get()->set_flag(ID, flags);
 		}
 		void remove_flag(const Flags flags)
 		{
+			if (!ID.is_valid())
+				return;
 			IResourceHandler::get()->remove_flag(ID, flags);
 		}
 	protected:
